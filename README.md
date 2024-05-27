@@ -8,9 +8,8 @@
 
 &nbsp;
 
-&nbsp;
 
-<img src="fig/hdr-gs.png" style="height:200px" />
+<img src="fig/hdr-gs.png" style="height:400px" />
 
 </div>
 
