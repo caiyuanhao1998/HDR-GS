@@ -51,7 +51,7 @@ This is the official implementation of our NeurIPS 2024 paper "HDR-GS: Efficient
 
 ## Citation
 ```sh
-@inproceedings{x_gaussian,
+@inproceedings{hdr_gs,
   title={HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting},
   author={Yuanhao Cai and Zihao Xiao and Yixun Liang and Minghan Qin and Yulun Zhang and Xiaokang Yang and Yaoyao Liu and Alan Yuille},
   booktitle={NeurIPS},
