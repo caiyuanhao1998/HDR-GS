@@ -21,7 +21,7 @@
 ### Introduction
 This is the official implementation of our NeurIPS 2024 paper "HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting". We have run the SfM algorithm to recalibrate the data. If you find this repo useful, please give it a star ⭐ and consider citing our paper. Thank you.
 
-<img src="fig/pipeline.png" style="height:320px" />
+<img src="fig/pipeline.png" style="height:340px" />
 
 ### News
 - **2024.07.01 :** Our HDR-GS has been accepted by NeurIPS 2024! Code will be released before the start date of the conference (2024.12.10). Stay tuned. 🚀
