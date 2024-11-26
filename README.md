@@ -118,6 +118,8 @@ Download our recalibrated and reorganizewd datasets from [Google drive](https://
 &nbsp;
 
 ## 3. Training and Evaluation
+
+You can run the `.sh` file by
 ```shell
 # For synthetic scenes
 bash train_synthetic.sh
@@ -125,6 +127,38 @@ bash train_synthetic.sh
 # for real scenes
 bash train_real.sh
 ```
+
+Or you can directly train on specific scenes as
+```shell
+# For synthetic scenes
+python3 train_synthetic_hdr_split.py --config config/sponza.yaml --eval --gpu_id 0 --syn
+
+python3 train_synthetic_hdr_split.py --config config/sofa.yaml --eval --gpu_id 0 --syn
+
+python3 train_synthetic_hdr_split.py --config config/bear.yaml --eval --gpu_id 0 --syn
+
+python3 train_synthetic_hdr_split.py --config config/chair.yaml --eval --gpu_id 0 --syn
+
+python3 train_synthetic_hdr_split.py --config config/desk.yaml --eval --gpu_id 0 --syn
+
+python3 train_synthetic_hdr_split.py --config config/diningroom.yaml --eval --gpu_id 0 --syn
+
+python3 train_synthetic_hdr_split.py --config config/dog.yaml --eval --gpu_id 0 --syn
+
+python3 train_synthetic_hdr_split.py --config config/bathroom.yaml --eval --gpu_id 0 --syn
+
+# for real scenes
+python3 train_real_split.py --config config/flower.yaml --eval --gpu_id 0
+
+python3 train_real_split.py --config config/computer.yaml --eval --gpu_id 0
+
+python3 train_real_split.py --config config/box.yaml --eval --gpu_id 0
+
+python3 train_real_split.py --config config/luckycat.yaml --eval --gpu_id 0
+```
+
+
+
 
 
 &nbsp;
