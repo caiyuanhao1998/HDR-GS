@@ -72,7 +72,7 @@ conda activate hdr_gs
 
 ## 2. Prepare Dataset
 
-Download our recalibrated and reorganizewd datasets from [Google drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing) or [Baidu disk](). Then put the downloaded datasets into the folder `data_hdr/` as
+Download our recalibrated and reorganizewd datasets from [Google drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing). Then put the downloaded datasets into the folder `data_hdr/` as
 
 ```sh
   |--data_hdr
