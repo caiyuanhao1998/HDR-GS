@@ -118,6 +118,8 @@ Download our recalibrated and reorganizewd datasets from [Google drive](https://
 &nbsp;
 
 ## 3. Training and Evaluation
+We provide training logs for your convienience to debug. Please download them from the [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt?usp=drive_link).
+
 
 You can run the `.sh` file by
 ```shell
