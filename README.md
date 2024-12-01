@@ -140,21 +140,21 @@ bash train_real.sh
 Or you can directly train on specific scenes as
 ```shell
 # For synthetic scenes
-python3 train_synthetic_hdr.py --config config/sponza.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/sponza.yaml --eval --gpu_id 0 --syn
 
-python3 train_synthetic_hdr.py --config config/sofa.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/sofa.yaml --eval --gpu_id 0 --syn
 
-python3 train_synthetic_hdr.py --config config/bear.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn
 
-python3 train_synthetic_hdr.py --config config/chair.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/chair.yaml --eval --gpu_id 0 --syn
 
-python3 train_synthetic_hdr.py --config config/desk.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/desk.yaml --eval --gpu_id 0 --syn
 
-python3 train_synthetic_hdr.py --config config/diningroom.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/diningroom.yaml --eval --gpu_id 0 --syn
 
-python3 train_synthetic_hdr.py --config config/dog.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/dog.yaml --eval --gpu_id 0 --syn
 
-python3 train_synthetic_hdr.py --config config/bathroom.yaml --eval --gpu_id 0 --syn
+python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn
 
 # for real scenes
 python3 train_real.py --config config/flower.yaml --eval --gpu_id 0
