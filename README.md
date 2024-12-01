@@ -14,7 +14,7 @@
 
 
 
-<h4>[NeurIPS 24] HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting</h4> 
+<h4>[NIPS 24] HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting</h4> 
 
 
 &nbsp;
