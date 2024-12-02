@@ -16,9 +16,13 @@
 
 <h4>HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting</h4> 
 
-|                          *Scene Bathroom*                           |                          *Scene Chair*                           |                          *Scene Dog*                           |                          *Scene Sofa*                           |
-| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bathroom.gif"  height=170 width=170> | <img src="./fig/chair.gif" width=170 height=170> | <img src="./fig/dog.gif" width=170 height=170> | <img src="./fig/sofa.gif" width=170 height=170> |
+|                          *Scene Bathroom*                           |                          *Scene Chair*                           |                          *Scene Dog*               
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| <img src="./fig/bathroom.gif"  height=220 width=220> | <img src="./fig/chair.gif" width=220 height=220> | <img src="./fig/dog.gif" width=220 height=220> |
+
+|                          *Scene Bear*                           |                          *Scene Dog*                           |                          *Scene Sponza*               
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| <img src="./fig/bear.gif"  height=220 width=220> | <img src="./fig/dog.gif" width=220 height=220> | <img src="./fig/sponza.gif" width=220 height=220> |
 
 &nbsp;
 
