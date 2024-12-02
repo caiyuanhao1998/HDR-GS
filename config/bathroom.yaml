@@ -1,5 +1,5 @@
 scene: bathroom
-source_path: data_hdr/HDR-NeRF_syndata_8_scenes/bathroom
+source_path: data_hdr/synthetic/bathroom
 method: mlp
 
 # llff parameters
@@ -13,6 +13,8 @@ use_viewdirs: True
 recenter: True
 bd_factor: 0.75
 images: images
+render_video: True
+video_render_exps: [0.2, 30.0]
 
 
 # Gaussian Parameters

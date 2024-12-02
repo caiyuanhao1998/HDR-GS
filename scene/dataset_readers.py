@@ -24,6 +24,8 @@ from plyfile import PlyData, PlyElement
 from utils.sh_utils import SH2RGB
 from scene.gaussian_model import BasicPointCloud
 from pdb import set_trace as stx
+import copy
+from utils.video_utils import get_spiral_render_path
 
 tonemap = lambda x : np.log(x * 5000.0 + 1.0) / np.log(5000.0 + 1.0)
 
@@ -327,7 +329,6 @@ def readColmapCameras_single_exps(cam_extrinsics, cam_intrinsics, images_folder,
     poses_arr = np.load(os.path.join(basedir, 'poses_bounds_exps.npy'))  # [175, 18]
     exps = poses_arr[:, -1:]
     # stx()
-
     cam_infos = []
     # qvec_list, tvec_list, params_list = average_camera_pose(cam_extrinsics, cam_intrinsics)
     for idx, key in enumerate(cam_extrinsics):
@@ -463,7 +464,7 @@ def readColmapCameras_single_exps_syn(cam_extrinsics, cam_intrinsics, images_fol
             image_hdr_path = os.path.join(exr_folder, os.path.basename(exr_name))
             image_hdr_name = os.path.basename(image_hdr_path).split(".")[0]
             # stx()
-            image_hdr_np = np.array(imageio.imread(image_hdr_path))
+            image_hdr_np = np.array(imageio.imread(image_hdr_path)).astype(np.float32)
             if image_hdr_np.shape[2] == 4:
                 image_hdr_np = image_hdr_np[:, :, :3]
             image_hdr_np /= np.max(image_hdr_np)
@@ -1053,7 +1054,6 @@ def readCamerasFromTransforms_hdr_real(basedir, exp_logger, llffhold = 0, factor
     hwf = poses[0,:3,-1]
     poses = poses[:,:3,:4]
     exps = exps_source
-
     # 对读取的数据进行前处理
     exp_logger.info('Loaded real llff: %s %s %s %s', images.shape, render_poses.shape, hwf, basedir)
     if not isinstance(i_test, list):
@@ -1119,7 +1119,7 @@ def readCamerasFromTransforms_hdr_real(basedir, exp_logger, llffhold = 0, factor
 
 def readNerfInfo_hdr_real(path, eval, exp_logger, llffhold = 0, factor=8, recenter=True, bd_factor=.75, spherify=False, path_zflat=False, max_exp=1, min_exp=1):
     print("Reading Training and Testing Transforms")
-    train_cam_infos, test_cam_infos = readCamerasFromTransforms_hdr_real(basedir = path, exp_logger=exp_logger, llffhold = llffhold, factor=factor, recenter=recenter, bd_factor=bd_factor, spherify=spherify, path_zflat=path_zflat, max_exp=max_exp, min_exp=min_exp)
+    train_cam_infos, test_cam_infos, bds = readCamerasFromTransforms_hdr_real(basedir = path, exp_logger=exp_logger, llffhold = llffhold, factor=factor, recenter=recenter, bd_factor=bd_factor, spherify=spherify, path_zflat=path_zflat, max_exp=max_exp, min_exp=min_exp)
     
     if not eval:
         train_cam_infos.extend(test_cam_infos)
@@ -1159,7 +1159,38 @@ def readNerfInfo_hdr_real(path, eval, exp_logger, llffhold = 0, factor=8, recent
 
 
 
+def TransformPosesToCamera(render_poses,sample_cam,args):
+    # random focal
+    cam_infos = []
+    sample_cam_temp = copy.deepcopy(sample_cam)
+    render_exps_first = np.linspace(args.video_render_exps[0],args.video_render_exps[1],render_poses.shape[0]//2)
+    render_exps_sec = np.linspace(args.video_render_exps[1],args.video_render_exps[0],render_poses.shape[0]//2)
+    render_exps = np.concatenate([render_exps_first,render_exps_sec],axis = 0)
+    for idx in range(render_poses.shape[0]):
+        R = np.array(render_poses[idx][:3, :3], np.float32)#.transpose(1, 0)
+        T = np.array(render_poses[idx][:3, 3], np.float32)
+        if args.syn:
+            cam_infos.append(CameraInfo_hdr_syn(uid=idx, R=R, T=T, FovY=sample_cam_temp.FovY, FovX=sample_cam_temp.FovX, image=sample_cam_temp.image,
+                                image_path=sample_cam_temp.image_path, image_name=sample_cam_temp.image_name, image_hdr = sample_cam_temp.image_hdr, image_hdr_path=sample_cam_temp.image_hdr_path,
+                                 image_hdr_name=sample_cam_temp.image_hdr_name, width=sample_cam_temp.width, height=sample_cam_temp.height, exps=np.asarray([render_exps[idx]])))
+        else:
+            cam_infos.append(CameraInfo_hdr(uid=idx, R=R, T=T, FovY=sample_cam_temp.FovY, FovX=sample_cam_temp.FovX, image=sample_cam_temp.image,
+                                    image_path=None, image_name=sample_cam_temp.image_name, width=sample_cam_temp.width, height=sample_cam_temp.height, exps=np.asarray([render_exps[idx]])))        
+    return cam_infos
 
+def GenSpiralCameras(train_cameras, args):
+    all_c2ws = []
+    for cam in train_cameras:
+        exts = np.concatenate((cam.R.transpose(1, 0),np.expand_dims(cam.T, axis=1)),axis = 1)
+        temp = np.expand_dims(np.array((0,0,0,1)),axis=0)
+        exts_homo = np.concatenate((exts,temp),axis = 0)
+        focal = fov2focal(cam.FovX,cam.width)
+        all_c2ws.append(np.linalg.inv(exts_homo))
+    all_c2ws = np.stack(all_c2ws)
+    render_poses = get_spiral_render_path(all_c2ws,focal=focal)
+    render_camera_info = TransformPosesToCamera(render_poses,train_cameras[0],args)
+    return render_camera_info
+    
 # 三种读取函数
 sceneLoadTypeCallbacks = {
     "Colmap": readColmapSceneInfo,

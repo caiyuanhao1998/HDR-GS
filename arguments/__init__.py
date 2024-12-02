@@ -70,6 +70,8 @@ class ModelParams(ParamGroup):
         self.path_zflat = False
         self.exps_id = 0
         self.syn = False
+        self.render_video = True
+        self.video_render_exps = [0.05, 10]
         self.method = 'mlp'
         super().__init__(parser, "Loading Parameters", sentinel)
 

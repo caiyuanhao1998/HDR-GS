@@ -20,6 +20,7 @@ from utils.sh_utils import RGB2SH
 from simple_knn._C import distCUDA2
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
+import copy
 
 class GaussianModel:
 
@@ -121,6 +122,12 @@ class GaussianModel:
         if self.active_sh_degree < self.max_sh_degree:
             self.active_sh_degree += 1
 
+    def init_tone_mapper(self,W = 256):
+        self.tone_mapper_r = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
+        self.tone_mapper_g = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
+        self.tone_mapper_b = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
+
+
     def create_from_pcd(self, pcd : BasicPointCloud, spatial_lr_scale : float, W = 256):
         self.spatial_lr_scale = spatial_lr_scale
         fused_point_cloud = torch.tensor(np.asarray(pcd.points)).float().cuda()
@@ -145,11 +152,13 @@ class GaussianModel:
         self._rotation = nn.Parameter(rots.requires_grad_(True))
         self._opacity = nn.Parameter(opacities.requires_grad_(True))
         self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
+        self.tone_mapper_width = W
 
         # three-channel MLPs for postprocessing - tone-mapper
-        self.tone_mapper_r = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
-        self.tone_mapper_g = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
-        self.tone_mapper_b = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
+        self.init_tone_mapper(W = self.tone_mapper_width)
+        # self.tone_mapper_r = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
+        # self.tone_mapper_g = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
+        # self.tone_mapper_b = nn.ModuleList([nn.Linear(1, W//2), nn.ReLU(), nn.Linear(W//2, 1), nn.Sigmoid()])
 
     def training_setup(self, training_args):
         self.percent_dense = training_args.percent_dense
@@ -236,6 +245,28 @@ class GaussianModel:
         el = PlyElement.describe(elements, 'vertex')
         PlyData([el]).write(path)
 
+
+    def save_tone_mapper(self,path):
+        # three-channel MLPs for postprocessing - tone-mapper
+        r_copied = copy.deepcopy(self.tone_mapper_r)
+        g_copied = copy.deepcopy(self.tone_mapper_g)
+        b_copied = copy.deepcopy(self.tone_mapper_b)
+        tone_mapper = {
+            "tone_mapper_width": self.tone_mapper_width,
+            "r_weights": r_copied.cpu().state_dict(),
+            "g_weights": g_copied.cpu().state_dict(),
+            "b_weights": b_copied.cpu().state_dict(),
+        }
+        torch.save(tone_mapper,path)
+
+    def load_tonemapper(self,path):
+        tone_mapper = torch.load(path)
+        self.init_tone_mapper(W = tone_mapper['tone_mapper_width'])
+        self.tone_mapper_r.load_state_dict(tone_mapper['r_weights'])#.to("cuda")
+        self.tone_mapper_g.load_state_dict(tone_mapper['g_weights'])
+        self.tone_mapper_b.load_state_dict(tone_mapper['b_weights'])
+        self.tone_mapper_width = tone_mapper['tone_mapper_width']
+
     def reset_opacity(self):
         opacities_new = inverse_sigmoid(torch.min(self.get_opacity, torch.ones_like(self.get_opacity)*0.01))
         optimizable_tensors = self.replace_tensor_to_optimizer(opacities_new, "opacity")
@@ -283,6 +314,7 @@ class GaussianModel:
         self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
 
         self.active_sh_degree = self.max_sh_degree
+        self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
 
     def replace_tensor_to_optimizer(self, tensor, name):
         optimizable_tensors = {}

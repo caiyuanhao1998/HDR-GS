@@ -1,5 +1,5 @@
 scene: box
-source_path: data_hdr/HDR-NeRF_realdata_4_scenes/box
+source_path: data_hdr/real/box
 method: mlp
 
 # llff parameters
@@ -13,6 +13,8 @@ use_viewdirs: True
 recenter: True
 bd_factor: 0.75
 images: input_images
+render_video: True
+video_render_exps: [0.1, 1]
 
 
 # Gaussian Parameters

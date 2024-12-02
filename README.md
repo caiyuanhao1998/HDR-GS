@@ -37,6 +37,7 @@ This is the official implementation of our NeurIPS 2024 paper "HDR-GS: Efficient
 <img src="fig/pipeline.png" style="height:340px" />
 
 ### News
+- **2024.12.01 :** We provide code for direct loading model to test and render spiral demo video. Welcome to have a try! 🤗
 - **2024.11.30 :** We set up a leaderboard on the [paper-with-code](https://paperswithcode.com/sota/novel-view-synthesis-on-hdr-gs) website! Welcome to submit your entry! 🏆
 - **2024.11.26 :** Code, recalibrated data following the opencv standard, and training logs have been released. Feel free to check and have a try! 🤗
 - **2024.07.01 :** Our HDR-GS has been accepted by NeurIPS 2024! Code will be released before the start date of the conference (2024.12.10). Stay tuned. 🚀
@@ -131,7 +132,35 @@ Download our recalibrated and reorganizewd datasets from [Google drive](https://
 
 &nbsp;
 
-## 3. Training and Evaluation
+## 3. Testing
+We write the code for directl loading model to test and render spiral video
+```shell
+# For synthetic scenes
+python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path 'path_to_your_model'  --test_only
+```
+For example, if you train a model with config: ``` bathroom.yaml```, you will get a profile as:
+```sh
+  |--output
+    |--mlp
+      |--bathroom
+        |--exp-time
+          |--point_cloud
+            |interation_x
+              |--pointcloud.ply
+              |--tone_mapper.pth
+            ...
+          |--test_set_vis
+          |--videos
+          |--cameras.json
+          |--cfg_args
+          |--input.ply
+          |--log.txt
+```
+then, the ``` "path_to_your_pretrained_point_clouds"```  of iteration_x is ``` "output/mlp/bathroom/exp-time/point_cloud/interation_x"```
+
+
+
+## 4. Training
 We provide training logs for your convienience to debug. Please download them from the [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt?usp=drive_link).
 
 
@@ -172,8 +201,6 @@ python3 train_real.py --config config/box.yaml --eval --gpu_id 0
 
 python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0
 ```
-
-
 
 
 

@@ -59,7 +59,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     # 实例化模型并加载数据
     # config 的参数要传入 dataset 中
     gaussians = GaussianModel(dataset.sh_degree)
-    scene = Scene(dataset, gaussians, exp_logger)    # 此处读数据，存在 scene 里面
+    scene = Scene(dataset, gaussians, exp_logger, load_path = args.load_path)    # 此处读数据，存在 scene 里面
 
     scene_category = dataset.scene
     if scene_category == "flower":
@@ -86,6 +86,14 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     iter_start = torch.cuda.Event(enable_timing = True)
     iter_end = torch.cuda.Event(enable_timing = True)
 
+
+    if args.test_only:
+        #breakpoint()
+        with torch.no_grad():
+            exp_logger.info("\n[TESTING ONLY]")
+            video_inference(0, scene, render, (pipe, background))
+            testing_report(exp_logger, [0], scene, render, (pipe, background), log_path, train_exps, test_exps)
+            exit()
     viewpoint_stack = None
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
@@ -141,7 +149,6 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         # loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image)) + args.exps_loss_weight * exps_loss
         loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image))
         loss.backward()
-
         iter_end.record()
 
         with torch.no_grad():
@@ -154,6 +161,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 progress_bar.close()
 
             # Log and save
+
+            if (iteration in testing_iterations):
+                video_inference(iteration, scene, render, (pipe, background))
             training_report(exp_logger, iteration, Ll1, loss, exps_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), log_path, train_exps, test_exps)
             if (iteration in saving_iterations):
                 exp_logger.info("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -214,90 +224,116 @@ def training_report(exp_logger, iteration, Ll1, loss, exps_loss, elapsed, testin
     # Report test and samples of training set
     if iteration in testing_iterations:
         torch.cuda.empty_cache()
-        validation_configs = ({'name': 'test', 'cameras' : scene.getTestCameras()},)
-        # stx()
+        testing_report(exp_logger, iteration, scene, renderFunc, renderArgs, log_path, train_exps, test_exps)
+        torch.cuda.empty_cache()
 
-        for config in validation_configs:
-            if config['cameras'] and len(config['cameras']) > 0:
-                # ldr-oe, t1, t3, t5
-                num_oe = 0
-                psnr_test_oe = 0.0
-                ssim_test_oe = 0.0
-                lpips_test_oe = 0.0
 
-                # ldr-ne, t2, t4
-                num_ne = 0
-                psnr_test_ne = 0.0
-                ssim_test_ne = 0.0
-                lpips_test_ne = 0.0
+def testing_report(exp_logger, iteration, scene : Scene, renderFunc, renderArgs, log_path, train_exps, test_exps):
+    validation_configs = ({'name': 'test', 'cameras' : scene.getTestCameras()},)
+    # stx()
+    for config in validation_configs:
+        if config['cameras'] and len(config['cameras']) > 0:
+            # ldr-oe, t1, t3, t5
+            num_oe = 0
+            psnr_test_oe = 0.0
+            ssim_test_oe = 0.0
+            lpips_test_oe = 0.0
 
-                # 记录测试的时间
-                time_cost = 0.0
+            # ldr-ne, t2, t4
+            num_ne = 0
+            psnr_test_ne = 0.0
+            ssim_test_ne = 0.0
+            lpips_test_ne = 0.0
 
-                for idx, viewpoint in tqdm(enumerate(config['cameras'])):
-                    time_start = time.time()
-                    image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs, render_mode = 'ldr', iteration = iteration)["render"], 0.0, 1.0)
-                    time_cost += time.time() - time_start
-                    # image_hdr = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs, render_mode = 'hdr', iteration = iteration)["render"], 0.0, 1.0)
-                    image_hdr_raw = renderFunc(viewpoint, scene.gaussians, *renderArgs, render_mode = 'hdr', iteration = iteration)["render"]
-                    image_hdr = tonemap(min_max_norm(image_hdr_raw))
+            # 记录测试的时间
+            time_cost = 0.0
 
-                    gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
+            for idx, viewpoint in tqdm(enumerate(config['cameras'])):
+                time_start = time.time()
+                image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs, render_mode = 'ldr', iteration = iteration)["render"], 0.0, 1.0)
+                time_cost += time.time() - time_start
+                # image_hdr = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs, render_mode = 'hdr', iteration = iteration)["render"], 0.0, 1.0)
+                image_hdr_raw = renderFunc(viewpoint, scene.gaussians, *renderArgs, render_mode = 'hdr', iteration = iteration)["render"]
+                image_hdr = tonemap(min_max_norm(image_hdr_raw))
 
-                    psnr_cur = psnr(image, gt_image).mean().double()
-                    ssim_cur = ssim(image, gt_image).mean().double()
-                    lpips_cur = lpips(image, gt_image, net_type='alex').mean().double()
+                gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
 
-                    if viewpoint.exps in train_exps:
-                        psnr_test_oe += psnr_cur
-                        ssim_test_oe += ssim_cur
-                        lpips_test_oe += lpips_cur
-                        num_oe += 1
-                    elif viewpoint.exps in test_exps:
-                        psnr_test_ne += psnr_cur
-                        ssim_test_ne += ssim_cur
-                        lpips_test_ne += lpips_cur
-                        num_ne += 1
-                    else:
-                        stx()
-                        raise ValueError("Unknown exposure")
+                psnr_cur = psnr(image, gt_image).mean().double()
+                ssim_cur = ssim(image, gt_image).mean().double()
+                lpips_cur = lpips(image, gt_image, net_type='alex').mean().double()
 
-                    align_debug_path = os.path.join(log_path, 'test_set_vis', str(iteration))
-                    align_debug_path_ldr_oe = os.path.join(align_debug_path, 'ldr', 'oe')
-                    align_debug_path_ldr_ne = os.path.join(align_debug_path, 'ldr', 'ne')
-                    align_debug_path_hdr = os.path.join(align_debug_path, 'hdr')
-                    os.makedirs(align_debug_path,exist_ok=True)
-                    os.makedirs(align_debug_path_ldr_oe,exist_ok=True)
-                    os.makedirs(align_debug_path_ldr_ne,exist_ok=True)
-                    os.makedirs(align_debug_path_hdr,exist_ok=True)
-                    # stx()
-                    # iio.imwrite(os.path.join(align_debug_path,'gt_{}.png'.format(viewpoint_cam.image_name)), (cast_to_image(gt_image[0])*255).astype(np.uint8))
-                    # iio.imwrite(os.path.join(align_debug_path,'render_{}.png'.format(viewpoint_cam.image_name)), (cast_to_image(image[0])*255).astype(np.uint8))
-                    if viewpoint.exps in train_exps:
-                        save_image(min_max_norm(gt_image), os.path.join(align_debug_path_ldr_oe, 'gt_{}_ldr.png'.format(viewpoint.image_name)))
-                        save_image(min_max_norm(image), os.path.join(align_debug_path_ldr_oe, 'render_{}_ldr.png'.format(viewpoint.image_name)))
-                    if viewpoint.exps in test_exps:
-                        save_image(min_max_norm(gt_image), os.path.join(align_debug_path_ldr_ne, 'gt_{}_ldr.png'.format(viewpoint.image_name)))
-                        save_image(min_max_norm(image), os.path.join(align_debug_path_ldr_ne, 'render_{}_ldr.png'.format(viewpoint.image_name)))
-                    save_image(min_max_norm(image_hdr), os.path.join(align_debug_path_hdr, 'render_{}_hdr.png'.format(viewpoint.image_name)))
+                if viewpoint.exps in train_exps:
+                    psnr_test_oe += psnr_cur
+                    ssim_test_oe += ssim_cur
+                    lpips_test_oe += lpips_cur
+                    num_oe += 1
+                elif viewpoint.exps in test_exps:
+                    psnr_test_ne += psnr_cur
+                    ssim_test_ne += ssim_cur
+                    lpips_test_ne += lpips_cur
+                    num_ne += 1
+                else:
+                    stx()
+                    raise ValueError("Unknown exposure")
 
-                    imageio.imwrite(os.path.join(align_debug_path_hdr, 'render_{}_hdr.exr'.format(viewpoint.image_name)), image_hdr_raw.permute(1, 2, 0).cpu().numpy())
-                
-                psnr_test_oe /= num_oe
-                ssim_test_oe /= num_oe
-                lpips_test_oe /= num_oe
+                align_debug_path = os.path.join(log_path, 'test_set_vis', str(iteration))
+                align_debug_path_ldr_oe = os.path.join(align_debug_path, 'ldr', 'oe')
+                align_debug_path_ldr_ne = os.path.join(align_debug_path, 'ldr', 'ne')
+                align_debug_path_hdr = os.path.join(align_debug_path, 'hdr')
+                os.makedirs(align_debug_path,exist_ok=True)
+                os.makedirs(align_debug_path_ldr_oe,exist_ok=True)
+                os.makedirs(align_debug_path_ldr_ne,exist_ok=True)
+                os.makedirs(align_debug_path_hdr,exist_ok=True)
+                # stx()
+                # iio.imwrite(os.path.join(align_debug_path,'gt_{}.png'.format(viewpoint_cam.image_name)), (cast_to_image(gt_image[0])*255).astype(np.uint8))
+                # iio.imwrite(os.path.join(align_debug_path,'render_{}.png'.format(viewpoint_cam.image_name)), (cast_to_image(image[0])*255).astype(np.uint8))
+                if viewpoint.exps in train_exps:
+                    save_image(min_max_norm(gt_image), os.path.join(align_debug_path_ldr_oe, 'gt_{}_ldr.png'.format(viewpoint.image_name)))
+                    save_image(min_max_norm(image), os.path.join(align_debug_path_ldr_oe, 'render_{}_ldr.png'.format(viewpoint.image_name)))
+                if viewpoint.exps in test_exps:
+                    save_image(min_max_norm(gt_image), os.path.join(align_debug_path_ldr_ne, 'gt_{}_ldr.png'.format(viewpoint.image_name)))
+                    save_image(min_max_norm(image), os.path.join(align_debug_path_ldr_ne, 'render_{}_ldr.png'.format(viewpoint.image_name)))
+                save_image(min_max_norm(image_hdr), os.path.join(align_debug_path_hdr, 'render_{}_hdr.png'.format(viewpoint.image_name)))
 
-                psnr_test_ne /= num_ne
-                ssim_test_ne /= num_ne
-                lpips_test_ne /= num_ne
+                imageio.imwrite(os.path.join(align_debug_path_hdr, 'render_{}_hdr.exr'.format(viewpoint.image_name)), image_hdr_raw.permute(1, 2, 0).cpu().numpy())
+            
+            psnr_test_oe /= num_oe
+            ssim_test_oe /= num_oe
+            lpips_test_oe /= num_oe
 
-                exp_logger.info("[ITER {}] LDR-OE Evaluating: Number {}, PSNR {}, SSIM {}, LPIPS {}".format(iteration, num_oe, psnr_test_oe, ssim_test_oe, lpips_test_oe))
-                exp_logger.info("[ITER {}] LDR-NE Evaluating: Number {}, PSNR {}, SSIM {}, LPIPS {}".format(iteration, num_ne, psnr_test_ne, ssim_test_ne, lpips_test_ne))
-                exp_logger.info(f"Time cost: {time_cost} s, Test speed: {len(config['cameras']) / time_cost} fps")
+            psnr_test_ne /= num_ne
+            ssim_test_ne /= num_ne
+            lpips_test_ne /= num_ne
+
+            exp_logger.info("[ITER {}] LDR-OE Evaluating: Number {}, PSNR {}, SSIM {}, LPIPS {}".format(iteration, num_oe, psnr_test_oe, ssim_test_oe, lpips_test_oe))
+            exp_logger.info("[ITER {}] LDR-NE Evaluating: Number {}, PSNR {}, SSIM {}, LPIPS {}".format(iteration, num_ne, psnr_test_ne, ssim_test_ne, lpips_test_ne))
+            exp_logger.info(f"Time cost: {time_cost} s, Test speed: {len(config['cameras']) / time_cost} fps")
 
                 # if iteration == 30000:
                 #     stx()
-        torch.cuda.empty_cache()
+
+def video_inference(iteration, scene : Scene, renderFunc, renderArgs):
+    save_folder = os.path.join(scene.model_path,"videos/{}_iteration".format(iteration))
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder)  # makedirs 
+        print('videos is in :', save_folder)
+    torch.cuda.empty_cache()
+    config = ({'name': 'test', 'cameras' : scene.getSpiralCameras()})
+    if config['cameras'] and len(config['cameras']) > 0:
+        img_frames = []
+        print("Generating Video using", len(config['cameras']), "different view points")
+        for idx, viewpoint in enumerate(config['cameras']):
+            render_out = renderFunc(viewpoint, scene.gaussians, iteration = iteration, *renderArgs)
+            rgb = render_out["render"]
+            image = torch.clamp(rgb, 0.0, 1.0) 
+            image = image.detach().cpu().permute(1,2,0).numpy()
+            image = (image * 255).round().astype('uint8')
+            img_frames.append(image)    
+        # Img to Numpy
+        imageio.mimwrite(os.path.join(save_folder, "video_rgb_{}.mp4".format(iteration)), img_frames, fps=30, quality=8)
+        print("\n[ITER {}] Video Save Done!".format(iteration))
+    torch.cuda.empty_cache()
+
 
 if __name__ == "__main__":
     # Set up command line argument parser
@@ -310,8 +346,10 @@ if __name__ == "__main__":
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
     parser.add_argument('--config', type=str, default='config/lego.yaml', help='Path to the configuration file')
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[1000, 30_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[1000, 30_000])
+    parser.add_argument("--load_path", type=str, default="", help="link to the pretrained model file")
+    parser.add_argument("--test_only", action='store_true', default=False)    
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[1, 1000, 30_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[1, 1000, 30_000])
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)

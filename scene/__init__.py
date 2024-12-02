@@ -13,31 +13,25 @@ import os
 import random
 import json
 from utils.system_utils import searchForMaxIteration
-from scene.dataset_readers import sceneLoadTypeCallbacks
+from scene.dataset_readers import sceneLoadTypeCallbacks, GenSpiralCameras
 from scene.gaussian_model import GaussianModel
 from arguments import ModelParams
 from utils.camera_utils import cameraList_from_camInfos, camera_to_JSON
 from pdb import set_trace as stx
+import numpy as np
+import math
 
 class Scene:
 
     gaussians : GaussianModel #类型注解
 
-    def __init__(self, args : ModelParams, gaussians : GaussianModel, exp_logger, load_iteration=None, shuffle=True, resolution_scales=[1.0]):
-        """b
+    def __init__(self, args : ModelParams, gaussians : GaussianModel, exp_logger, load_path="", shuffle=True, resolution_scales=[1.0]):
+        """
         :param path: Path to colmap scene main folder.
         """
         self.model_path = args.model_path
         self.loaded_iter = None
         self.gaussians = gaussians
-
-        if load_iteration:
-            if load_iteration == -1:
-                self.loaded_iter = searchForMaxIteration(os.path.join(self.model_path, "point_cloud"))
-            else:
-                self.loaded_iter = load_iteration
-            print("Loading trained model at iteration {}".format(self.loaded_iter))
-
         self.train_cameras = {}
         self.test_cameras = {}
 
@@ -100,21 +94,24 @@ class Scene:
             print("Loading Test Cameras")
             self.test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args)
 
-
+        #set render video camera trajectory
+        if args.render_video:
+            self.render_sp_cameras = {}
+            render_camera_infos = GenSpiralCameras(scene_info.train_cameras, args=args)
+            self.render_sp_cameras[resolution_scale] = cameraList_from_camInfos(render_camera_infos, resolution_scale, args)
         # 加载模型
         # 从指定 iteration 中加载或者从从 camera 数据中加载
-        if self.loaded_iter:
-            self.gaussians.load_ply(os.path.join(self.model_path,
-                                                           "point_cloud",
-                                                           "iteration_" + str(self.loaded_iter),
-                                                           "point_cloud.ply"))
+        if load_path != "":
+            self.gaussians.load_ply(os.path.join(load_path,"point_cloud.ply"))
+            self.gaussians.load_tonemapper(os.path.join(load_path,"tone_mapper.pth"))
+            print("Loading trained model at {}".format(load_path))
         else:
             self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
-
     # 定义存储函数
     def save(self, iteration):
         point_cloud_path = os.path.join(self.model_path, "point_cloud/iteration_{}".format(iteration))
         self.gaussians.save_ply(os.path.join(point_cloud_path, "point_cloud.ply"))
+        self.gaussians.save_tone_mapper(os.path.join(point_cloud_path, "tone_mapper.pth"))
 
     # 从 train 或 test 里面取数据的函数
     def getTrainCameras(self, scale=1.0):
@@ -122,3 +119,7 @@ class Scene:
 
     def getTestCameras(self, scale=1.0):
         return self.test_cameras[scale]
+    #self.train_cameras[1.0][0].R
+
+    def getSpiralCameras(self, scale=1.0):
+        return self.render_sp_cameras[scale]
