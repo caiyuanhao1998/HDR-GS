@@ -18,11 +18,11 @@
 
 |                          *Scene Bathroom*                           |                          *Scene Chair*                           |                          *Scene Dog*               
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bathroom.gif"  height=220 width=220> | <img src="./fig/chair.gif" width=220 height=220> | <img src="./fig/dog.gif" width=220 height=220> |
+| <img src="./fig/bathroom.gif"  height=250 width=250> | <img src="./fig/chair.gif" width=250 height=250> | <img src="./fig/dog.gif" width=250 height=250> |
 
 |                          *Scene Bear*                           |                          *Scene Dog*                           |                          *Scene Sponza*               
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bear.gif"  height=220 width=220> | <img src="./fig/dog.gif" width=220 height=220> | <img src="./fig/sponza.gif" width=220 height=220> |
+| <img src="./fig/bear.gif"  height=250 width=250> | <img src="./fig/dog.gif" width=250 height=250> | <img src="./fig/sponza.gif" width=250 height=250> |
 
 &nbsp;
 
