@@ -138,7 +138,7 @@ We write the code for directl loading model to test and render spiral video
 # For synthetic scenes
 python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path 'path_to_your_model'  --test_only
 ```
-For example, if you train a model with config: ``` bathroom.yaml```, you will get a profile as:
+For example, if you train a model with config: ```bathroom.yaml```, you will get a profile as:
 ```sh
   |--output
     |--mlp
