@@ -65,6 +65,18 @@ This is the official implementation of our NeurIPS 2024 paper "HDR-GS: Efficient
 
 &nbsp;
 
+### Interactive Results
+|                          *Scene Bathroom*                           |                          *Scene Chair*                           |                          *Scene Diningroom*                           |
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| [<img src="/fig/compare_bathroom.png" height="250px"/>](https://imgsli.com/MzIzNTAw) | [<img src="/fig/compare_chair.png" height="250px"/>](https://imgsli.com/MzIzNTAx) | [<img src="/fig/compare_diningroom.png" height="250px"/>](https://imgsli.com/MzIzNTAy) |
+
+|                          *Scene Dog*                           |                          *Scene Sofa*                           |                          *Scene Sponza*                           |
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| [<img src="/fig/compare_dog.png" height="250px"/>](https://imgsli.com/MzIzNTA0) | [<img src="/fig/compare_sofa.png" height="250px"/>](https://imgsli.com/MzIzNTA1) | [<img src="/fig/compare_sponza.png" height="250px"/>](https://imgsli.com/MzIzNTA2) |
+
+
+&nbsp;
+
 ## 1. Create Environment
 
 We recommend using [Conda](https://docs.conda.io/en/latest/miniconda.html) to set up the environment.
