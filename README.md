@@ -133,12 +133,12 @@ Download our recalibrated and reorganizewd datasets from [Google drive](https://
 &nbsp;
 
 ## 3. Testing
-We write the code for directl loading model to test and render spiral video
+We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/1ZCrC5jhBGQ8IvfBGFYm2EafhBozkHXkL?usp=drive_link) and then put it into the folder `pretrained_weights`.
 ```shell
 # For synthetic scenes
-python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path 'path_to_your_model'  --test_only
+python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/bathroom  --test_only
 ```
-For example, if you train a model with config: ```bathroom.yaml```, you will get a profile as:
+Besides, if you train a model with config: ```bathroom.yaml```, you will get a profile as:
 ```sh
   |--output
     |--mlp
@@ -146,7 +146,7 @@ For example, if you train a model with config: ```bathroom.yaml```, you will get
         |--exp-time
           |--point_cloud
             |interation_x
-              |--pointcloud.ply
+              |--point_cloud.ply
               |--tone_mapper.pth
             ...
           |--test_set_vis
@@ -156,7 +156,7 @@ For example, if you train a model with config: ```bathroom.yaml```, you will get
           |--input.ply
           |--log.txt
 ```
-then, the ``` "path_to_your_pretrained_point_clouds"```  of iteration_x is ``` "output/mlp/bathroom/exp-time/point_cloud/interation_x"```
+Then the ```--load_path``` should be ``` "output/mlp/bathroom/exp-time/point_cloud/interation_x"```
 
 
 
