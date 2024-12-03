@@ -264,7 +264,7 @@ def testing_report(exp_logger, iteration, scene : Scene, renderFunc, renderArgs,
 
                 psnr_test_hdr += psnr(image_hdr, gt_image_hdr).mean().double()
                 ssim_test_hdr += ssim(image_hdr, gt_image_hdr).mean().double()
-                lpips_test_hdr += 0. #lpips(image_hdr, gt_image_hdr, net_type='alex').mean().double()
+                lpips_test_hdr += lpips(image_hdr, gt_image_hdr, net_type='alex').mean().double()
 
                 align_debug_path = os.path.join(log_path, 'test_set_vis', str(iteration))
                 align_debug_path_ldr_oe = os.path.join(align_debug_path, 'ldr', 'oe')
