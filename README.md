@@ -99,7 +99,7 @@ conda activate hdr_gs
 
 ## 2. Prepare Dataset
 
-Download our recalibrated and reorganizewd datasets from [Google drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing). Then put the downloaded datasets into the folder `data_hdr/` as
+Download our recalibrated and reorganized datasets from [Google drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing). Then put the downloaded datasets into the folder `data_hdr/` as
 
 ```sh
   |--data_hdr
@@ -145,7 +145,7 @@ Download our recalibrated and reorganizewd datasets from [Google drive](https://
 &nbsp;
 
 ## 3. Testing
-We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/1ZCrC5jhBGQ8IvfBGFYm2EafhBozkHXkL?usp=drive_link) and then put it into the folder `pretrained_weights`.
+We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) and then put it into the folder `pretrained_weights`.
 ```shell
 # For synthetic scenes
 python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/bathroom  --test_only
