@@ -20,9 +20,9 @@
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | <img src="./fig/bathroom.gif"  height=250 width=250> | <img src="./fig/chair.gif" width=250 height=250> | <img src="./fig/dog.gif" width=250 height=250> |
 
-|                          *Scene Bear*                           |                          *Scene Dog*                           |                          *Scene Sponza*               
+|                          *Scene Bear*                           |                          *Scene Desk*                           |                          *Scene Sponza*               
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bear.gif"  height=250 width=250> | <img src="./fig/dog.gif" width=250 height=250> | <img src="./fig/sponza.gif" width=250 height=250> |
+| <img src="./fig/bear.gif"  height=250 width=250> | <img src="./fig/desk.gif" width=250 height=250> | <img src="./fig/sponza.gif" width=250 height=250> |
 
 &nbsp;
 
