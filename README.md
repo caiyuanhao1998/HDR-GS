@@ -99,7 +99,7 @@ conda activate hdr_gs
 
 ## 2. Prepare Dataset
 
-Download our recalibrated and reorganized datasets from [Google drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing). Then put the downloaded datasets into the folder `data_hdr/` as
+Download our recalibrated and reorganized datasets from [Google Drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1wXxaTd9qwLUo2jVLO8jilg?pwd=cyh2) (code: `cyh2`). Then put the downloaded datasets into the folder `data_hdr/` as
 
 ```sh
   |--data_hdr
@@ -145,7 +145,7 @@ Download our recalibrated and reorganized datasets from [Google drive](https://d
 &nbsp;
 
 ## 3. Testing
-We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) and then put it into the folder `pretrained_weights`.
+We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1VVUiC794FWJddZz1ZEio_A?pwd=cyh2) (code: `cyh2`) and then put it into the folder `pretrained_weights`.
 ```shell
 # For synthetic scenes
 python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/bathroom  --test_only
@@ -173,7 +173,7 @@ Then the ```--load_path``` should be ``` "output/mlp/bathroom/exp-time/point_clo
 
 
 ## 4. Training
-We provide training logs for your convienience to debug. Please download them from the [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt?usp=drive_link).
+We provide training logs for your convenience to debug. Please download them from the [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt?usp=drive_link) or [Baidu Disk](https://pan.baidu.com/s/17iO_iOHyEyrmdZYgAGK7Sw?pwd=cyh2) (code: `cyh2`).
 
 
 You can run the `.sh` file by
