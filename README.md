@@ -103,21 +103,11 @@ conda activate hdr_gs
 
 Download our recalibrated and reorganized datasets from [Google Drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1wXxaTd9qwLUo2jVLO8jilg?pwd=cyh2) (code: `cyh2`). Put the downloaded datasets into `data_hdr/`.
 
-Alternatively, download the data from [Hugging Face](https://huggingface.co/datasets/CaiYuanhao/HDR-GS). Run the following commands in a Bash-compatible terminal from the project root. The pinned client version supports the project's Python 3.7 environment:
+Alternatively, download the data from [Hugging Face](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) using Git LFS. With [Git LFS](https://git-lfs.com/) installed, run these commands from the project root:
 
 ```shell
-python -m pip install "huggingface_hub==0.16.4"
-python - <<'PY'
-from huggingface_hub import snapshot_download
-
-snapshot_download(
-    repo_id="CaiYuanhao/HDR-GS",
-    repo_type="dataset",
-    allow_patterns=["synthetic/**", "real/**"],
-    local_dir="data_hdr",
-    local_dir_use_symlinks=False,
-)
-PY
+git lfs install
+git clone https://huggingface.co/datasets/CaiYuanhao/HDR-GS data_hdr
 ```
 
 This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the following layout:
@@ -168,24 +158,16 @@ This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the foll
 ## 3. Testing
 We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1VVUiC794FWJddZz1ZEio_A?pwd=cyh2) (code: `cyh2`) and then put it into the folder `pretrained_weights`.
 
-Alternatively, download the pretrained bathroom model from [Hugging Face](https://huggingface.co/CaiYuanhao/HDR-GS). Run the following commands in a Bash-compatible terminal from the project root:
+Alternatively, download the pretrained models from [Hugging Face](https://huggingface.co/CaiYuanhao/HDR-GS) using Git LFS. Run these commands from the project root:
 
 ```shell
-python -m pip install "huggingface_hub==0.16.4"
-python - <<'PY'
-from huggingface_hub import snapshot_download
-
-snapshot_download(
-    repo_id="CaiYuanhao/HDR-GS",
-    repo_type="model",
-    allow_patterns=["bathroom/**"],
-    local_dir="pretrained_weights",
-    local_dir_use_symlinks=False,
-)
-PY
+git lfs install
+git clone https://huggingface.co/CaiYuanhao/HDR-GS pretrained_weights
 ```
 
-This creates `pretrained_weights/bathroom/point_cloud.ply` and `pretrained_weights/bathroom/tone_mapper.pth`. With the bathroom dataset downloaded above, test and render the model using:
+This downloads both `bathroom/` and `sofa_2/` into `pretrained_weights/`. The bathroom model files are `pretrained_weights/bathroom/point_cloud.ply` and `pretrained_weights/bathroom/tone_mapper.pth`.
+
+With the bathroom dataset downloaded above, test and render the model using:
 
 ```shell
 # For synthetic scenes
