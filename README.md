@@ -9,7 +9,6 @@
 [![zhihu](https://img.shields.io/badge/zhihu-知乎解读-0084FF)](https://zhuanlan.zhihu.com/p/10016024329)
 [![Video](https://img.shields.io/badge/YouTube-Video-ff0000?logo=youtube)](https://www.youtube.com/watch?v=wtU7Kcwe7ck)
 [![arXiv](https://img.shields.io/badge/arXiv-paper-B31B1B)](https://arxiv.org/abs/2405.15125)
-[![GitHub](https://img.shields.io/badge/GitHub-Code-181717?logo=github)](https://github.com/caiyuanhao1998/HDR-GS)
 [![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS)
 [![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/CaiYuanhao/HDR-GS)
 [![AK](https://img.shields.io/badge/media-AK-green)](https://x.com/_akhaliq/status/1794921228462923925?s=46)
