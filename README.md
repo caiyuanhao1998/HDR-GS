@@ -4,9 +4,14 @@
 
 <p align="center"> <img src="fig/logo.png" width="110px"> </p>
 
-[![arXiv](https://img.shields.io/badge/paper-arxiv-179bd3)](https://arxiv.org/abs/2405.15125)
-[![video](https://img.shields.io/badge/video-demo-yellow)](https://www.youtube.com/watch?v=wtU7Kcwe7ck)
-[![zhihu](https://img.shields.io/badge/知乎-解读-yellow)](https://zhuanlan.zhihu.com/p/10016024329)
+
+[![NeurIPS 2024](https://img.shields.io/badge/NeurIPS-2024-6295C5)](https://arxiv.org/abs/2405.15125)
+[![zhihu](https://img.shields.io/badge/zhihu-知乎解读-0084FF)](https://zhuanlan.zhihu.com/p/10016024329)
+[![Video](https://img.shields.io/badge/YouTube-Video-ff0000?logo=youtube)](https://www.youtube.com/watch?v=wtU7Kcwe7ck)
+[![arXiv](https://img.shields.io/badge/arXiv-paper-B31B1B)](https://arxiv.org/abs/2405.15125)
+[![GitHub](https://img.shields.io/badge/GitHub-Code-181717?logo=github)](https://github.com/caiyuanhao1998/HDR-GS)
+[![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS)
+[![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/CaiYuanhao/HDR-GS)
 [![AK](https://img.shields.io/badge/media-AK-green)](https://x.com/_akhaliq/status/1794921228462923925?s=46)
 [![MrNeRF](https://img.shields.io/badge/media-MrNeRF-green)](https://x.com/janusch_patas/status/1794932286397489222?s=46)
 
@@ -35,6 +40,7 @@ This is the official implementation of our NeurIPS 2024 paper "HDR-GS: Efficient
 <img src="fig/pipeline.png" style="height:340px" />
 
 ### News
+- **2026.11.08 :** We have released our dataset and models on HuggingFace 🤗
 - **2024.12.01 :** We provide code for direct loading model to test and render spiral demo video. Welcome to have a try! 🤗
 - **2024.11.30 :** We set up a leaderboard on the [paper-with-code](https://paperswithcode.com/sota/novel-view-synthesis-on-hdr-gs) website! Welcome to submit your entry! 🏆
 - **2024.11.26 :** Code, recalibrated data following the opencv standard, and training logs have been released. Feel free to check and have a try! 🤗
