@@ -161,7 +161,6 @@ We write the code for directly loading the model to test and render spiral video
 Alternatively, download the pretrained models from [Hugging Face](https://huggingface.co/CaiYuanhao/HDR-GS) using Git LFS. Run these commands from the project root:
 
 ```shell
-git lfs install
 git clone https://huggingface.co/CaiYuanhao/HDR-GS pretrained_weights
 ```
 
