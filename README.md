@@ -5,7 +5,6 @@
 <p align="center"> <img src="fig/logo.png" width="110px"> </p>
 
 
-[![NeurIPS 2024](https://img.shields.io/badge/NeurIPS-2024-6295C5)](https://arxiv.org/abs/2405.15125)
 [![zhihu](https://img.shields.io/badge/zhihu-知乎解读-0084FF)](https://zhuanlan.zhihu.com/p/10016024329)
 [![Video](https://img.shields.io/badge/YouTube-Video-ff0000?logo=youtube)](https://www.youtube.com/watch?v=wtU7Kcwe7ck)
 [![arXiv](https://img.shields.io/badge/arXiv-paper-B31B1B)](https://arxiv.org/abs/2405.15125)
