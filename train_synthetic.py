@@ -26,9 +26,9 @@ from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
 import datetime
 from pdb import set_trace as stx
-import yaml
+from utils.config_utils import parse_training_args
 import time
-import imageio
+import imageio.v2 as imageio
 
 tonemap = lambda x : torch.log(x * 5000 + 1 ) / torch.log(torch.tensor(5000.0 + 1.0))
 
@@ -51,7 +51,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     test_exps = dataset.test_exps
     gaussians.training_setup(opt)
     if checkpoint:
-        (model_params, first_iter) = torch.load(checkpoint)
+        (model_params, first_iter) = torch.load(checkpoint, map_location="cuda")
         gaussians.restore(model_params, opt)
 
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
@@ -66,7 +66,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         with torch.no_grad():
             exp_logger.info("\n[TESTING ONLY]")
             video_inference(0, scene, render, (pipe, background))
-            testing_report(exp_logger, [0], scene, render, (pipe, background), log_path, train_exps, test_exps)
+            testing_report(exp_logger, 0, scene, render, (pipe, background), log_path, train_exps, test_exps)
             exit()
     viewpoint_stack = None
     ema_loss_for_log = 0.0
@@ -365,9 +365,8 @@ if __name__ == "__main__":
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)
-    parser.add_argument("--gpu_id", default="7", help="gpu to use")
-    args = parser.parse_args(sys.argv[1:])
-    args.save_iterations.append(args.iterations)
+    parser.add_argument("--gpu_id", default="0", help="gpu to use")
+    args = parse_training_args(parser, sys.argv[1:])
     
     os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
@@ -379,14 +378,6 @@ if __name__ == "__main__":
 
     # Start GUI server, configure and run training
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-
-    # 读取配置文件
-    with open(args.config, 'r') as f:
-        config = yaml.safe_load(f)
-
-    # 使用配置文件中的参数来设置OptimizationParams对象的属性
-    for key, value in config.items():
-        setattr(args, key, value)
 
     training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
 

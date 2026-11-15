@@ -1,15 +1,8 @@
-python3 train_synthetic_hdr_split.py --config config/sponza.yaml --eval --gpu_id 0 --syn
+#!/usr/bin/env bash
+set -euo pipefail
 
-python3 train_synthetic_hdr_split.py --config config/sofa.yaml --eval --gpu_id 0 --syn
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
-python3 train_synthetic_hdr_split.py --config config/bear.yaml --eval --gpu_id 0 --syn
-
-python3 train_synthetic_hdr_split.py --config config/chair.yaml --eval --gpu_id 0 --syn
-
-python3 train_synthetic_hdr_split.py --config config/desk.yaml --eval --gpu_id 0 --syn
-
-python3 train_synthetic_hdr_split.py --config config/diningroom.yaml --eval --gpu_id 0 --syn
-
-python3 train_synthetic_hdr_split.py --config config/dog.yaml --eval --gpu_id 0 --syn
-
-python3 train_synthetic_hdr_split.py --config config/bathroom.yaml --eval --gpu_id 0 --syn
+for scene in sponza sofa bear chair desk diningroom dog bathroom; do
+  python3 train_synthetic.py --config "config/${scene}.yaml" --eval --gpu_id "${GPU_ID:-0}" --syn "$@"
+done

@@ -73,9 +73,17 @@ class GaussianModel:
             self.denom,
             self.optimizer.state_dict(),
             self.spatial_lr_scale,
+            self.tone_mapper_state(),
         )
     
     def restore(self, model_args, training_args):
+        if len(model_args) not in (12, 13):
+            raise ValueError("Unrecognized Gaussian checkpoint format")
+        if len(model_args) == 13:
+            self.load_tone_mapper_state(model_args[12])
+        elif not getattr(self, "_tone_mapper_loaded", False):
+            raise ValueError("Legacy checkpoint does not contain tone-mapper weights; "
+                             "provide --load_path with the matching saved scene model")
         (self.active_sh_degree, 
         self._xyz, 
         self._features_dc, 
@@ -87,7 +95,7 @@ class GaussianModel:
         xyz_gradient_accum, 
         denom,
         opt_dict, 
-        self.spatial_lr_scale) = model_args
+        self.spatial_lr_scale) = model_args[:12]
         self.training_setup(training_args)
         self.xyz_gradient_accum = xyz_gradient_accum
         self.denom = denom
@@ -153,6 +161,7 @@ class GaussianModel:
         self._opacity = nn.Parameter(opacities.requires_grad_(True))
         self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
         self.tone_mapper_width = W
+        self._tone_mapper_loaded = False
 
         # three-channel MLPs for postprocessing - tone-mapper
         self.init_tone_mapper(W = self.tone_mapper_width)
@@ -246,26 +255,27 @@ class GaussianModel:
         PlyData([el]).write(path)
 
 
-    def save_tone_mapper(self,path):
-        # three-channel MLPs for postprocessing - tone-mapper
-        r_copied = copy.deepcopy(self.tone_mapper_r)
-        g_copied = copy.deepcopy(self.tone_mapper_g)
-        b_copied = copy.deepcopy(self.tone_mapper_b)
-        tone_mapper = {
-            "tone_mapper_width": self.tone_mapper_width,
-            "r_weights": r_copied.cpu().state_dict(),
-            "g_weights": g_copied.cpu().state_dict(),
-            "b_weights": b_copied.cpu().state_dict(),
-        }
-        torch.save(tone_mapper,path)
+    def tone_mapper_state(self):
+        state = {"tone_mapper_width": self.tone_mapper_width}
+        for channel in ("r", "g", "b"):
+            mapper = getattr(self, "tone_mapper_" + channel)
+            state[channel + "_weights"] = {
+                key: value.detach().cpu().clone() for key, value in mapper.state_dict().items()
+            }
+        return state
 
-    def load_tonemapper(self,path):
-        tone_mapper = torch.load(path)
-        self.init_tone_mapper(W = tone_mapper['tone_mapper_width'])
-        self.tone_mapper_r.load_state_dict(tone_mapper['r_weights'])#.to("cuda")
-        self.tone_mapper_g.load_state_dict(tone_mapper['g_weights'])
-        self.tone_mapper_b.load_state_dict(tone_mapper['b_weights'])
-        self.tone_mapper_width = tone_mapper['tone_mapper_width']
+    def save_tone_mapper(self, path):
+        torch.save(self.tone_mapper_state(), path)
+
+    def load_tone_mapper_state(self, state):
+        self.tone_mapper_width = state["tone_mapper_width"]
+        self.init_tone_mapper(W=self.tone_mapper_width)
+        for channel in ("r", "g", "b"):
+            getattr(self, "tone_mapper_" + channel).load_state_dict(state[channel + "_weights"])
+        self._tone_mapper_loaded = True
+
+    def load_tonemapper(self, path):
+        self.load_tone_mapper_state(torch.load(path, map_location="cpu"))
 
     def reset_opacity(self):
         opacities_new = inverse_sigmoid(torch.min(self.get_opacity, torch.ones_like(self.get_opacity)*0.01))

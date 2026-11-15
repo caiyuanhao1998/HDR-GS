@@ -1,6 +1,12 @@
 import torch
+from functools import lru_cache
 
 from .modules.lpips import LPIPS
+
+
+@lru_cache(maxsize=8)
+def _get_criterion(net_type, version, device):
+    return LPIPS(net_type, version).to(torch.device(device)).eval()
 
 
 def lpips(x: torch.Tensor,
@@ -17,5 +23,5 @@ def lpips(x: torch.Tensor,
         version (str): the version of LPIPS. Default: 0.1.
     """
     device = x.device
-    criterion = LPIPS(net_type, version).to(device)
+    criterion = _get_criterion(net_type, version, str(device))
     return criterion(x, y)

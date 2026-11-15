@@ -10,7 +10,9 @@
 #
 
 import os
-import imageio
+# Enable the OpenEXR codec used by the released synthetic HDR references.
+os.environ.setdefault("OPENCV_IO_ENABLE_OPENEXR", "1")
+import imageio.v2 as imageio
 import sys
 from PIL import Image
 from typing import NamedTuple

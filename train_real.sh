@@ -1,7 +1,8 @@
-python3 train_real_split.py --config config/flower.yaml --eval --gpu_id 0
+#!/usr/bin/env bash
+set -euo pipefail
 
-python3 train_real_split.py --config config/computer.yaml --eval --gpu_id 0
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
-python3 train_real_split.py --config config/box.yaml --eval --gpu_id 0
-
-python3 train_real_split.py --config config/luckycat.yaml --eval --gpu_id 0
+for scene in flower computer box luckycat; do
+  python3 train_real.py --config "config/${scene}.yaml" --eval --gpu_id "${GPU_ID:-0}" "$@"
+done

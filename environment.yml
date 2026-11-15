@@ -4,14 +4,22 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - cudatoolkit=11.6
-  - plyfile=0.8.1
   - python=3.7.13
   - pip=22.3.1
+  - cudatoolkit=11.6
   - pytorch=1.12.1
   - torchaudio=0.12.1
   - torchvision=0.13.1
+  # Newer MKL removes iJIT_NotifyEvent required by these PyTorch binaries.
+  - mkl<2024.1
+  - numpy<2
+  - scipy
+  - pillow<10
+  - plyfile=0.8.1
+  - pyyaml
   - tqdm
+  - ninja
+  - imageio<=2.31.2
+  - imageio-ffmpeg<=0.4.8
   - pip:
-    - submodules/diff-gaussian-rasterization
-    - submodules/simple-knn
+    - opencv-python-headless==4.8.1.78

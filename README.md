@@ -76,18 +76,32 @@ This is the official implementation of our NeurIPS 2024 paper "HDR-GS: Efficient
 
 We recommend using [Conda](https://docs.conda.io/en/latest/miniconda.html) to set up the environment.
 
-``` sh
-# cloning our repo
+```shell
 git clone https://github.com/caiyuanhao1998/HDR-GS --recursive
-
-
-SET DISTUTILS_USE_SDK=1 # Windows only
-
-# install the official environment of 3DGS
 cd HDR-GS
 conda env create --file environment.yml
 conda activate hdr_gs
 ```
+
+A CUDA development toolkit (`nvcc`) and a compatible C++ compiler are required to build the two CUDA extensions. The Conda `cudatoolkit` package supplies runtime libraries, not `nvcc`. The configuration below has been tested with CUDA 11.8 and GCC 11 on Linux.
+
+On Linux with a newer system compiler (for example GCC 12 or 13), install a compatible compiler before building:
+
+```shell
+conda install -c conda-forge gcc_linux-64=11 gxx_linux-64=11 libxcrypt
+conda deactivate
+conda activate hdr_gs
+export CPATH="${CONDA_PREFIX}/include${CPATH:+:${CPATH}}"
+```
+
+Then build the extensions in the activated environment, after PyTorch is installed:
+
+```shell
+python -m pip install --no-build-isolation ./submodules/diff-gaussian-rasterization ./submodules/simple-knn
+python -c "import torch, diff_gaussian_rasterization, simple_knn._C; print(torch.__version__, torch.cuda.is_available())"
+```
+
+For Windows, use a CUDA-compatible Visual Studio build environment and run `set DISTUTILS_USE_SDK=1` in Command Prompt before the extension installation command. The Linux compiler command above is not needed on Windows.
 
 
 &nbsp;
@@ -200,6 +214,8 @@ bash train_synthetic.sh
 bash train_real.sh
 ```
 
+Set `GPU_ID` to select a different GPU for either batch script, for example `GPU_ID=1 bash train_real.sh`. Extra command-line options are forwarded to each scene. Explicit command-line options override the YAML configuration.
+
 Or you can directly train on specific scenes as
 ```shell
 # For synthetic scenes
@@ -230,10 +246,20 @@ python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0
 ```
 
 
+To save a resumable checkpoint and continue training later:
+
+```shell
+python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --checkpoint_iterations 1000 --model_path output/bathroom
+python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --start_checkpoint output/bathroom/chkpnt1000.pth --model_path output/bathroom-resumed
+```
+
+New checkpoints include the learned RGB tone mappers and optimizer state. Legacy checkpoints need `--load_path` pointing to the matching saved scene model because they do not contain tone-mapper weights.
+
+Run the regression checks in the activated environment with `python -m unittest discover -s tests -v`. The checkpoint tests require a CUDA GPU and the compiled extensions.
 
 &nbsp;
 
-## 4. Citation
+## 5. Citation
 ```sh
 @inproceedings{hdr_gs,
   title={HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting},

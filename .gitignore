@@ -6,3 +6,6 @@ diff_rasterization/diff_rast.egg-info
 diff_rasterization/dist
 tensorboard_3d
 screenshots
+# Downloaded scene data and pretrained model repositories
+data_hdr/
+pretrained_weights/
