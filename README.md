@@ -5,17 +5,17 @@
 <p align="center"> <img src="fig/logo.png" width="110px"> </p>
 
 
-[![arXiv](https://img.shields.io/badge/arXiv-Paper-B31B1B?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2405.15125) [![YouTube](https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=wtU7Kcwe7ck) [![知乎](https://img.shields.io/badge/知乎-0084FF?logo=zhihu&logoColor=white)](https://zhuanlan.zhihu.com/p/10016024329) [![HF Data](https://img.shields.io/badge/HF-Data-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) [![HF Model](https://img.shields.io/badge/HF-Model-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/CaiYuanhao/HDR-GS) [![AK](https://img.shields.io/badge/AK-2EA44F)](https://x.com/_akhaliq/status/1794921228462923925?s=46) [![MrNeRF](https://img.shields.io/badge/MrNeRF-2EA44F)](https://x.com/janusch_patas/status/1794932286397489222?s=46) [![Project Page](https://img.shields.io/badge/Project-Page-179BD3?logo=googlechrome&logoColor=white)](https://caiyuanhao1998.github.io/project/HDR-GS/)
+[![arXiv](https://img.shields.io/badge/arXiv-2405.15125-b31b1b)](https://arxiv.org/abs/2405.15125) [![Video](https://img.shields.io/badge/YouTube-Video-ff0000?logo=youtube)](https://www.youtube.com/watch?v=wtU7Kcwe7ck) [![知乎](https://img.shields.io/badge/知乎-解读-0084ff)](https://zhuanlan.zhihu.com/p/10016024329) [![HF Data](https://img.shields.io/badge/HF-Data-yellow?logo=huggingface)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) [![HF Model](https://img.shields.io/badge/HF-Model-yellow?logo=huggingface)](https://huggingface.co/CaiYuanhao/HDR-GS) [![AK](https://img.shields.io/badge/media-AK-green)](https://x.com/_akhaliq/status/1794921228462923925?s=46) [![MrNeRF](https://img.shields.io/badge/media-MrNeRF-green)](https://x.com/janusch_patas/status/1794932286397489222?s=46) [![Project Page](https://img.shields.io/badge/Project-page-2EA44F)](https://caiyuanhao1998.github.io/project/HDR-GS/)
 
 <h4>HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting</h4> 
 
 |                          *Scene Bathroom*                           |                          *Scene Chair*                           |                          *Scene Dog*               
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bathroom.gif?v=hdr-gs-smooth-v4"  height=250 width=250> | <img src="./fig/chair.gif?v=hdr-gs-smooth-v4" width=250 height=250> | <img src="./fig/dog.gif?v=hdr-gs-smooth-v4" width=250 height=250> |
+| <img src="./fig/bathroom.gif?v=original-20261115"  height=250 width=250> | <img src="./fig/chair.gif?v=original-20261115" width=250 height=250> | <img src="./fig/dog.gif?v=original-20261115" width=250 height=250> |
 
 |                          *Scene Bear*                           |                          *Scene Desk*                           |                          *Scene Sponza*               
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bear.gif?v=hdr-gs-smooth-v4"  height=250 width=250> | <img src="./fig/desk.gif?v=hdr-gs-smooth-v4" width=250 height=250> | <img src="./fig/sponza.gif?v=hdr-gs-smooth-v4" width=250 height=250> |
+| <img src="./fig/bear.gif?v=original-20261115"  height=250 width=250> | <img src="./fig/desk.gif?v=original-20261115" width=250 height=250> | <img src="./fig/sponza.gif?v=original-20261115" width=250 height=250> |
 
 &nbsp;
 
@@ -96,7 +96,7 @@ conda activate hdr_gs
 
 Download our recalibrated and reorganized datasets from [Google Drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1wXxaTd9qwLUo2jVLO8jilg?pwd=cyh2) (code: `cyh2`). Put the downloaded datasets into `data_hdr/`.
 
-Alternatively, download the data from [![HF Data](https://img.shields.io/badge/HF-Data-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) using Git LFS. With [Git LFS](https://git-lfs.com/) installed, run these commands from the project root:
+Alternatively, download the data from [![HF Data](https://img.shields.io/badge/HF-Data-yellow?logo=huggingface)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) using Git LFS. With [Git LFS](https://git-lfs.com/) installed, run these commands from the project root:
 
 ```shell
 git lfs install
@@ -151,7 +151,7 @@ This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the foll
 ## 3. Testing
 We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1VVUiC794FWJddZz1ZEio_A?pwd=cyh2) (code: `cyh2`) and then put it into the folder `pretrained_weights`.
 
-Alternatively, download the pretrained models from [![HF Model](https://img.shields.io/badge/HF-Model-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/CaiYuanhao/HDR-GS) using Git LFS. Run these commands from the project root:
+Alternatively, download the pretrained models from [![HF Model](https://img.shields.io/badge/HF-Model-yellow?logo=huggingface)](https://huggingface.co/CaiYuanhao/HDR-GS) using Git LFS. Run these commands from the project root:
 
 ```shell
 git clone https://huggingface.co/CaiYuanhao/HDR-GS pretrained_weights
