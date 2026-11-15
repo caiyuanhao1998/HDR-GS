@@ -11,11 +11,11 @@
 
 |                          *Scene Bathroom*                           |                          *Scene Chair*                           |                          *Scene Dog*               
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bathroom.gif"  height=250 width=250> | <img src="./fig/chair.gif" width=250 height=250> | <img src="./fig/dog.gif" width=250 height=250> |
+| <img src="./fig/bathroom.gif?v=hdr-gs-smooth-v4"  height=250 width=250> | <img src="./fig/chair.gif?v=hdr-gs-smooth-v4" width=250 height=250> | <img src="./fig/dog.gif?v=hdr-gs-smooth-v4" width=250 height=250> |
 
 |                          *Scene Bear*                           |                          *Scene Desk*                           |                          *Scene Sponza*               
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="./fig/bear.gif"  height=250 width=250> | <img src="./fig/desk.gif" width=250 height=250> | <img src="./fig/sponza.gif" width=250 height=250> |
+| <img src="./fig/bear.gif?v=hdr-gs-smooth-v4"  height=250 width=250> | <img src="./fig/desk.gif?v=hdr-gs-smooth-v4" width=250 height=250> | <img src="./fig/sponza.gif?v=hdr-gs-smooth-v4" width=250 height=250> |
 
 &nbsp;
 
