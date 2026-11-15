@@ -16,6 +16,7 @@ class TrainingConfigurationTests(unittest.TestCase):
             parser.add_argument('--save_iterations', nargs='+', type=int, default=[1, 1000, 30000])
             parser.add_argument('--source_path', default='')
             parser.add_argument('--load_path', default='')
+            parser.add_argument('--start_checkpoint', default=None)
             parser.add_argument('--test_only', action='store_true')
             return parse_training_args(parser, ['--config', str(config)] + list(extra))
 
@@ -36,6 +37,9 @@ class TrainingConfigurationTests(unittest.TestCase):
             self.parse('iterations: 10\n', ['--test_only'])
         args = self.parse('iterations: 10\n', ['--test_only', '--load_path', 'pretrained_weights/bathroom'])
         self.assertTrue(args.test_only)
+        checkpoint_args = self.parse('iterations: 10\n', ['--test_only', '--start_checkpoint', 'output/chkpnt1000.pth'])
+        self.assertTrue(checkpoint_args.test_only)
+        self.assertEqual(checkpoint_args.start_checkpoint, 'output/chkpnt1000.pth')
 
 
 if __name__ == '__main__':

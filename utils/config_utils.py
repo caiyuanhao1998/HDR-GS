@@ -15,7 +15,7 @@ def parse_training_args(parser, argv=None):
     args = parser.parse_args(argv)
     if args.iterations < 1:
         parser.error("--iterations must be positive")
-    if args.test_only and not args.load_path:
-        parser.error("--test_only requires --load_path pointing to a saved scene model")
+    if args.test_only and not (args.load_path or getattr(args, "start_checkpoint", None)):
+        parser.error("--test_only requires --load_path or --start_checkpoint pointing to saved weights")
     args.save_iterations = sorted(set(args.save_iterations + [args.iterations]))
     return args

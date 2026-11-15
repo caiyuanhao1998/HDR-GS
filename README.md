@@ -253,7 +253,7 @@ python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn
 python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --start_checkpoint output/bathroom/chkpnt1000.pth --model_path output/bathroom-resumed
 ```
 
-New checkpoints include the learned RGB tone mappers and optimizer state. Legacy checkpoints need `--load_path` pointing to the matching saved scene model because they do not contain tone-mapper weights.
+New checkpoints include the learned RGB tone mappers and optimizer state. Use `--test_only --start_checkpoint path/to/chkpnt1000.pth` to evaluate a new checkpoint directly. Legacy checkpoints need `--load_path` pointing to the matching saved scene model because they do not contain tone-mapper weights.
 
 Run the regression checks in the activated environment with `python -m unittest discover -s tests -v`. The checkpoint tests require a CUDA GPU and the compiled extensions.
 
