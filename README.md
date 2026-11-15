@@ -5,15 +5,7 @@
 <p align="center"> <img src="fig/logo.png" width="110px"> </p>
 
 
-[![zhihu](https://img.shields.io/badge/zhihu-知乎解读-0084FF)](https://zhuanlan.zhihu.com/p/10016024329)
-[![Video](https://img.shields.io/badge/YouTube-Video-ff0000?logo=youtube)](https://www.youtube.com/watch?v=wtU7Kcwe7ck)
-[![arXiv](https://img.shields.io/badge/arXiv-paper-B31B1B)](https://arxiv.org/abs/2405.15125)
-[![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS)
-[![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/CaiYuanhao/HDR-GS)
-[![AK](https://img.shields.io/badge/media-AK-green)](https://x.com/_akhaliq/status/1794921228462923925?s=46)
-[![MrNeRF](https://img.shields.io/badge/media-MrNeRF-green)](https://x.com/janusch_patas/status/1794932286397489222?s=46)
-
-
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-B31B1B?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2405.15125) [![YouTube](https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=wtU7Kcwe7ck) [![知乎](https://img.shields.io/badge/知乎-0084FF?logo=zhihu&logoColor=white)](https://zhuanlan.zhihu.com/p/10016024329) [![HF Data](https://img.shields.io/badge/HF-Data-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) [![HF Model](https://img.shields.io/badge/HF-Model-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/CaiYuanhao/HDR-GS) [![AK](https://img.shields.io/badge/AK-2EA44F)](https://x.com/_akhaliq/status/1794921228462923925?s=46) [![MrNeRF](https://img.shields.io/badge/MrNeRF-2EA44F)](https://x.com/janusch_patas/status/1794932286397489222?s=46) [![Project Page](https://img.shields.io/badge/Project-Page-179BD3?logo=googlechrome&logoColor=white)](https://caiyuanhao1998.github.io/project/HDR-GS/)
 
 <h4>HDR-GS: Efficient High Dynamic Range Novel View Synthesis at 1000x Speed via Gaussian Splatting</h4> 
 
@@ -38,6 +30,7 @@ This is the official implementation of our NeurIPS 2024 paper "HDR-GS: Efficient
 <img src="fig/pipeline.png" style="height:340px" />
 
 ### News
+- **2026.11.15 :** We have built the [project page](https://caiyuanhao1998.github.io/project/HDR-GS/) with novel-view reconstruction videos and interactive Gaussian point clouds. 🚀
 - **2026.11.08 :** We have released our dataset and models on HuggingFace 🤗
 - **2024.12.01 :** We provide code for direct loading model to test and render spiral demo video. Welcome to have a try! 🤗
 - **2024.11.30 :** We set up a leaderboard on the [paper-with-code](https://paperswithcode.com/sota/novel-view-synthesis-on-hdr-gs) website! Welcome to submit your entry! 🏆
@@ -103,7 +96,7 @@ conda activate hdr_gs
 
 Download our recalibrated and reorganized datasets from [Google Drive](https://drive.google.com/file/d/1-9K8_iFwFH3SeTcRoaOTed-h9GBdRrrr/view?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1wXxaTd9qwLUo2jVLO8jilg?pwd=cyh2) (code: `cyh2`). Put the downloaded datasets into `data_hdr/`.
 
-Alternatively, download the data from [Hugging Face](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) using Git LFS. With [Git LFS](https://git-lfs.com/) installed, run these commands from the project root:
+Alternatively, download the data from [![HF Data](https://img.shields.io/badge/HF-Data-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/CaiYuanhao/HDR-GS) using Git LFS. With [Git LFS](https://git-lfs.com/) installed, run these commands from the project root:
 
 ```shell
 git lfs install
@@ -158,7 +151,7 @@ This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the foll
 ## 3. Testing
 We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1VVUiC794FWJddZz1ZEio_A?pwd=cyh2) (code: `cyh2`) and then put it into the folder `pretrained_weights`.
 
-Alternatively, download the pretrained models from [Hugging Face](https://huggingface.co/CaiYuanhao/HDR-GS) using Git LFS. Run these commands from the project root:
+Alternatively, download the pretrained models from [![HF Model](https://img.shields.io/badge/HF-Model-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/CaiYuanhao/HDR-GS) using Git LFS. Run these commands from the project root:
 
 ```shell
 git clone https://huggingface.co/CaiYuanhao/HDR-GS pretrained_weights
