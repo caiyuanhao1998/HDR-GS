@@ -257,6 +257,8 @@ New checkpoints include the learned RGB tone mappers and optimizer state. Use `-
 
 Run the regression checks in the activated environment with `python -m unittest discover -s tests -v`. The checkpoint tests require a CUDA GPU and the compiled extensions.
 
+See the [Linux reproduction report](docs/reproduction-2026-11-15.md) for fresh-install validation, pretrained-model checks, and full 30,000-iteration training and saved-model reload results across all 12 scenes.
+
 &nbsp;
 
 ## 5. Citation

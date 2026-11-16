@@ -1,0 +1,1070 @@
+{
+  "date": "2026-11-15",
+  "code_commit": "fa9a975bc36926571645035ff3ff43aca87d5974",
+  "environment": {
+    "python": "3.7.12",
+    "pytorch": "1.12.1",
+    "torchvision": "0.13.1",
+    "torch_cuda": "11.6",
+    "imageio": "2.31.1",
+    "opencv": "4.8.1",
+    "numpy": "1.21.6",
+    "scipy": "1.7.3",
+    "pyyaml": "6.0",
+    "pillow": "9.2.0",
+    "cuda_available": true,
+    "cuda_toolkit": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2022 NVIDIA Corporation\nBuilt on Wed_Sep_21_10:33:58_PDT_2022\nCuda compilation tools, release 11.8, V11.8.89\nBuild cuda_11.8.r11.8/compiler.31833905_0",
+    "compiler": "x86_64-conda-linux-gnu-c++ (conda-forge gcc 11.4.0-13) 11.4.0"
+  },
+  "clean_installs": 2,
+  "regression_tests": 9,
+  "provided_pretrained_model_parity": {
+    "bathroom": {
+      "all_metrics_identical": true,
+      "before": {
+        "LDR-OE": [
+          41.31185991623823,
+          0.9751758306634192,
+          0.014435116009896292
+        ],
+        "LDR-NE": [
+          40.50539897469913,
+          0.9768091808347141,
+          0.014467994449660182
+        ],
+        "HDR": [
+          35.855918884277344,
+          0.9635604725164526,
+          0.02065524727325229
+        ]
+      },
+      "after": {
+        "LDR-OE": [
+          41.31185991623823,
+          0.9751758306634192,
+          0.014435116009896292
+        ],
+        "LDR-NE": [
+          40.50539897469913,
+          0.9768091808347141,
+          0.014467994449660182
+        ],
+        "HDR": [
+          35.855918884277344,
+          0.9635604725164526,
+          0.02065524727325229
+        ]
+      }
+    },
+    "sofa": {
+      "all_metrics_identical": true,
+      "before": {
+        "LDR-OE": [
+          41.41129736806832,
+          0.9898501938464594,
+          0.005580860705973178
+        ],
+        "LDR-NE": [
+          25.647396255941953,
+          0.9723109988605275,
+          0.024598135065068215
+        ],
+        "HDR": [
+          42.31132911233341,
+          0.9896233432433185,
+          0.005283340948688633
+        ]
+      },
+      "after": {
+        "LDR-OE": [
+          41.41129736806832,
+          0.9898501938464594,
+          0.005580860705973178
+        ],
+        "LDR-NE": [
+          25.647396255941953,
+          0.9723109988605275,
+          0.024598135065068215
+        ],
+        "HDR": [
+          42.31132911233341,
+          0.9896233432433185,
+          0.005283340948688633
+        ]
+      }
+    }
+  },
+  "checkpoint_resume": {
+    "start_iteration": 1000,
+    "final_iteration": 1010,
+    "passed": true,
+    "scene": "bathroom",
+    "subset": "synthetic"
+  },
+  "scenes": [
+    {
+      "scene": "bathroom",
+      "gaussians": 307923,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 41.1444434745639,
+          "ssim": 0.9741270027908624,
+          "lpips": 0.015242792017684848
+        },
+        "LDR-NE": {
+          "psnr": 40.4459976308486,
+          "ssim": 0.9759031902341282,
+          "lpips": 0.015240466770003824
+        },
+        "HDR": {
+          "psnr": 35.0143497691435,
+          "ssim": 0.9618004279978135,
+          "lpips": 0.021867909633061466
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 41.1444434745639,
+          "ssim": 0.9741270027908624,
+          "lpips": 0.015242792017684848
+        },
+        "LDR-NE": {
+          "psnr": 40.4459976308486,
+          "ssim": 0.9759031902341282,
+          "lpips": 0.015240466770003824
+        },
+        "HDR": {
+          "psnr": 35.0143497691435,
+          "ssim": 0.9618004279978135,
+          "lpips": 0.021867909633061466
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5691230
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5691230
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 76366435,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 2146.6
+    },
+    {
+      "scene": "bear",
+      "gaussians": 146702,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 43.163155200434666,
+          "ssim": 0.9903300988907907,
+          "lpips": 0.005623037698587366
+        },
+        "LDR-NE": {
+          "psnr": 42.451391107895795,
+          "ssim": 0.9898148810162264,
+          "lpips": 0.005984579822432031
+        },
+        "HDR": {
+          "psnr": 43.82829688577091,
+          "ssim": 0.990658840712379,
+          "lpips": 0.005980315056684262
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 43.163155200434666,
+          "ssim": 0.9903300988907907,
+          "lpips": 0.005623037698587366
+        },
+        "LDR-NE": {
+          "psnr": 42.451391107895795,
+          "ssim": 0.9898148810162264,
+          "lpips": 0.005984579822432031
+        },
+        "HDR": {
+          "psnr": 43.82829688577091,
+          "ssim": 0.990658840712379,
+          "lpips": 0.005980315056684262
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 2841184
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 2841184
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 36383627,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 1680.5
+    },
+    {
+      "scene": "chair",
+      "gaussians": 353021,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 35.730823292451745,
+          "ssim": 0.9599612226673201,
+          "lpips": 0.026030120951141798
+        },
+        "LDR-NE": {
+          "psnr": 34.850793165319104,
+          "ssim": 0.9582400444675894,
+          "lpips": 0.027599522570038542
+        },
+        "HDR": {
+          "psnr": 37.66815252865062,
+          "ssim": 0.9669866912505206,
+          "lpips": 0.019458816660677686
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 35.730823292451745,
+          "ssim": 0.9599612226673201,
+          "lpips": 0.026030120951141798
+        },
+        "LDR-NE": {
+          "psnr": 34.850793165319104,
+          "ssim": 0.9582400444675894,
+          "lpips": 0.027599522570038542
+        },
+        "HDR": {
+          "psnr": 37.66815252865062,
+          "ssim": 0.9669866912505206,
+          "lpips": 0.019458816660677686
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5480791
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5480791
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 87550739,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 2458.1
+    },
+    {
+      "scene": "desk",
+      "gaussians": 396693,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 40.16573479596306,
+          "ssim": 0.9796936406808741,
+          "lpips": 0.013778624417004632
+        },
+        "LDR-NE": {
+          "psnr": 38.30493410895853,
+          "ssim": 0.9786098879926345,
+          "lpips": 0.01634467250722296
+        },
+        "HDR": {
+          "psnr": 44.03321613984949,
+          "ssim": 0.9840071551940021,
+          "lpips": 0.011404782177551705
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 40.16573479596306,
+          "ssim": 0.9796936406808741,
+          "lpips": 0.013778624417004632
+        },
+        "LDR-NE": {
+          "psnr": 38.30493410895853,
+          "ssim": 0.9786098879926345,
+          "lpips": 0.01634467250722296
+        },
+        "HDR": {
+          "psnr": 44.03321613984949,
+          "ssim": 0.9840071551940021,
+          "lpips": 0.011404782177551705
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 4248871
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 4248871
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 98381395,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 2479.5
+    },
+    {
+      "scene": "diningroom",
+      "gaussians": 317783,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 43.894501031613814,
+          "ssim": 0.9900119281282612,
+          "lpips": 0.008588386489553195
+        },
+        "LDR-NE": {
+          "psnr": 42.21964892219095,
+          "ssim": 0.9894031058339512,
+          "lpips": 0.010259361061103204
+        },
+        "HDR": {
+          "psnr": 42.115257038789636,
+          "ssim": 0.9891581640524023,
+          "lpips": 0.010899946038775584
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 43.894501031613814,
+          "ssim": 0.9900119281282612,
+          "lpips": 0.008588386489553195
+        },
+        "LDR-NE": {
+          "psnr": 42.21964892219095,
+          "ssim": 0.9894031058339512,
+          "lpips": 0.010259361061103204
+        },
+        "HDR": {
+          "psnr": 42.115257038789636,
+          "ssim": 0.9891581640524023,
+          "lpips": 0.010899946038775584
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 3342038
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 3342038
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 78811715,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 2388.2
+    },
+    {
+      "scene": "dog",
+      "gaussians": 295480,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 42.03806297451842,
+          "ssim": 0.9902482967750699,
+          "lpips": 0.006012578095382481
+        },
+        "LDR-NE": {
+          "psnr": 39.5420119341682,
+          "ssim": 0.9875497537500718,
+          "lpips": 0.008877534501473694
+        },
+        "HDR": {
+          "psnr": 36.80663164924173,
+          "ssim": 0.9883438173462362,
+          "lpips": 0.007131159606882755
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 42.03806297451842,
+          "ssim": 0.9902482967750699,
+          "lpips": 0.006012578095382481
+        },
+        "LDR-NE": {
+          "psnr": 39.5420119341682,
+          "ssim": 0.9875497537500718,
+          "lpips": 0.008877534501473694
+        },
+        "HDR": {
+          "psnr": 36.80663164924173,
+          "ssim": 0.9883438173462362,
+          "lpips": 0.007131159606882755
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5644637
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5644637
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 73280571,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 2191.9
+    },
+    {
+      "scene": "sofa",
+      "gaussians": 384790,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 41.5398603701124,
+          "ssim": 0.9897884048667608,
+          "lpips": 0.005760113087793191
+        },
+        "LDR-NE": {
+          "psnr": 25.7094586316277,
+          "ssim": 0.97278932613485,
+          "lpips": 0.024528771529302877
+        },
+        "HDR": {
+          "psnr": 42.37828265919405,
+          "ssim": 0.9895050104926614,
+          "lpips": 0.005250300198574276
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 41.5398603701124,
+          "ssim": 0.9897884048667608,
+          "lpips": 0.005760113087793191
+        },
+        "LDR-NE": {
+          "psnr": 25.7094586316277,
+          "ssim": 0.97278932613485,
+          "lpips": 0.024528771529302877
+        },
+        "HDR": {
+          "psnr": 42.37828265919405,
+          "ssim": 0.9895050104926614,
+          "lpips": 0.005250300198574276
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5151435
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5151435
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 95429451,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 2658.8
+    },
+    {
+      "scene": "sponza",
+      "gaussians": 409362,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 39.545066758698106,
+          "ssim": 0.9833013041346681,
+          "lpips": 0.010016245415945556
+        },
+        "LDR-NE": {
+          "psnr": 26.17013673221364,
+          "ssim": 0.9644892881898319,
+          "lpips": 0.023230415796313214
+        },
+        "HDR": {
+          "psnr": 27.748791301951687,
+          "ssim": 0.9463560616268831,
+          "lpips": 0.01833052440162967
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 39.545066758698106,
+          "ssim": 0.9833013041346681,
+          "lpips": 0.010016245415945556
+        },
+        "LDR-NE": {
+          "psnr": 26.17013673221364,
+          "ssim": 0.9644892881898319,
+          "lpips": 0.023230415796313214
+        },
+        "HDR": {
+          "psnr": 27.748791301951687,
+          "ssim": 0.9463560616268831,
+          "lpips": 0.01833052440162967
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "HDR": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5080046
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            800,
+            800
+          ],
+          "bytes": 5080046
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 101523307,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "synthetic",
+      "iterations": 30000,
+      "training_seconds": 2569.8
+    },
+    {
+      "scene": "box",
+      "gaussians": 1776774,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 36.590282739377486,
+          "ssim": 0.9777767097248751,
+          "lpips": 0.015460994222438802
+        },
+        "LDR-NE": {
+          "psnr": 30.12500134636374,
+          "ssim": 0.9695234947344836,
+          "lpips": 0.0277949311387013
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 36.590282739377486,
+          "ssim": 0.9777767097248751,
+          "lpips": 0.015460994222438802
+        },
+        "LDR-NE": {
+          "psnr": 30.12500134636374,
+          "ssim": 0.9695234947344836,
+          "lpips": 0.0277949311387013
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 8094372
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 8094372
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 440641484,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "real",
+      "iterations": 30000,
+      "training_seconds": 6759.4
+    },
+    {
+      "scene": "computer",
+      "gaussians": 2037652,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 35.73167165120443,
+          "ssim": 0.9668631156285604,
+          "lpips": 0.025327254433696177
+        },
+        "LDR-NE": {
+          "psnr": 32.12883747325224,
+          "ssim": 0.9652886110193589,
+          "lpips": 0.028063276946982917
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 35.73167165120443,
+          "ssim": 0.9668631156285604,
+          "lpips": 0.025327254433696177
+        },
+        "LDR-NE": {
+          "psnr": 32.12883747325224,
+          "ssim": 0.9652886110193589,
+          "lpips": 0.028063276946982917
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 10590758
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 10590758
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 505339228,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "real",
+      "iterations": 30000,
+      "training_seconds": 6622.3
+    },
+    {
+      "scene": "flower",
+      "gaussians": 1676278,
+      "all_model_values_finite": true,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 33.043108285642134,
+          "ssim": 0.9605240459535636,
+          "lpips": 0.036819915761988536
+        },
+        "LDR-NE": {
+          "psnr": 29.68847392587101,
+          "ssim": 0.9545377896112555,
+          "lpips": 0.045904690016280204
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 33.043108285642134,
+          "ssim": 0.9605240459535636,
+          "lpips": 0.036819915761988536
+        },
+        "LDR-NE": {
+          "psnr": 29.68847392587101,
+          "ssim": 0.9545377896112555,
+          "lpips": 0.045904690016280204
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 10012671
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 10012671
+        }
+      },
+      "model_files_bytes": {
+        "point_cloud.ply": 415718476,
+        "tone_mapper.pth": 7873
+      },
+      "subset": "real",
+      "iterations": 30000,
+      "training_seconds": 6373.7
+    },
+    {
+      "scene": "luckycat",
+      "subset": "real",
+      "iterations": 30000,
+      "training_seconds": 8656.7,
+      "gaussians": 2669902,
+      "metrics": {
+        "LDR-OE": {
+          "psnr": 36.49523398455452,
+          "ssim": 0.9751621145828098,
+          "lpips": 0.01653493177510944
+        },
+        "LDR-NE": {
+          "psnr": 34.44332953060375,
+          "ssim": 0.9688902777784011,
+          "lpips": 0.023195597836199927
+        }
+      },
+      "reloaded_metrics": {
+        "LDR-OE": {
+          "psnr": 36.49523398455452,
+          "ssim": 0.9751621145828098,
+          "lpips": 0.01653493177510944
+        },
+        "LDR-NE": {
+          "psnr": 34.44332953060375,
+          "ssim": 0.9688902777784011,
+          "lpips": 0.023195597836199927
+        }
+      },
+      "reload_absolute_differences": {
+        "LDR-NE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        },
+        "LDR-OE": {
+          "psnr": 0.0,
+          "ssim": 0.0,
+          "lpips": 0.0
+        }
+      },
+      "videos": {
+        "training": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 10133762
+        },
+        "reloaded": {
+          "frames": 120,
+          "fps": 30.0,
+          "size": [
+            1600,
+            1072
+          ],
+          "bytes": 10133762
+        }
+      },
+      "all_model_values_finite": true,
+      "model_files_bytes": {
+        "point_cloud.ply": 662137228,
+        "tone_mapper.pth": 7873
+      }
+    }
+  ],
+  "training_implementation_commit": "821ea472cc9bf2b8fb291c518c07ea89314730b9",
+  "second_environment_full_inference": {
+    "status": "passed",
+    "test_images": 85,
+    "metrics": {
+      "LDR-OE": [
+        41.31185991623823,
+        0.9751758306634192,
+        0.014435116009896292
+      ],
+      "LDR-NE": [
+        40.50539897469913,
+        0.9768091808347141,
+        0.014467994449660182
+      ],
+      "HDR": [
+        35.855918884277344,
+        0.9635604725164526,
+        0.02065524727325229
+      ]
+    },
+    "metrics_identical_to_first_environment": true
+  },
+  "direct_checkpoint_evaluation": {
+    "passed": true,
+    "resolution_factor": 8,
+    "test_images": 85
+  }
+}
