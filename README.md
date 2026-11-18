@@ -242,19 +242,7 @@ Testing also saves `render_*_hdr_preview.png` beside the original HDR EXR files,
 We provide training logs for your convenience to debug. Please download them from the [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt?usp=drive_link) or [Baidu Disk](https://pan.baidu.com/s/17iO_iOHyEyrmdZYgAGK7Sw?pwd=cyh2) (code: `cyh2`).
 
 
-Each command runs the full training recipe in the scene YAML. The default scene YAMLs run the recipes used for the checkpoints in [Testing](#3-testing). The batch scripts run the same commands for all 12 scenes.
-
-```shell
-# For synthetic scenes
-bash train_synthetic.sh
-
-# For real scenes
-bash train_real.sh
-```
-
-Set `GPU_ID` to select a different GPU for either batch script, for example `GPU_ID=1 bash train_real.sh`. Extra command-line options are forwarded to each scene. Explicit command-line options override the YAML configuration.
-
-Use a scene command to train it individually.
+Train each scene using the corresponding YAML.
 
 ```shell
 # For synthetic scenes
@@ -273,31 +261,6 @@ python3 train_real.py --config config/computer.yaml --eval --gpu_id 0
 python3 train_real.py --config config/box.yaml --eval --gpu_id 0
 python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0
 ```
-
-### Scene configuration
-
-The `refinement` block in each scene YAML selects its training recipe. Set `enabled: false` to train the base model and save it under `point_cloud/iteration_30000/`.
-
-```yaml
-refinement:
-  enabled: true
-  plan: refinement/bear.yaml
-```
-
-Bear, Chair, Desk, Dining Room, Dog, Sponza and the four real scenes train the base model and refine it in the same run. Bathroom and Sofa automatically download and verify the original checkpoint pair at the revision pinned in their recipes, then refine the tone mapper. The final checkpoint path is printed and saved in `refinement/run.json`. With `--eval`, the final metrics are saved in `refinement/benchmark.json`. These paths are relative to the training output directory.
-
-The [refinement guide](docs/refinement.md) describes the scene recipes and how to reuse a saved initialization.
-
-The first command saves a base-training checkpoint at iteration 1,000. The second resumes from that checkpoint and follows the same scene YAML.
-
-```shell
-python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn --checkpoint_iterations 1000 --model_path output/bear
-python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn --start_checkpoint output/bear/chkpnt1000.pth --model_path output/bear-resumed
-```
-
-New checkpoints include the learned RGB tone mappers and optimizer state. Use `--test_only --start_checkpoint path/to/chkpnt1000.pth` to evaluate a new checkpoint directly. Legacy checkpoints need `--load_path` pointing to the matching saved scene model because they do not contain tone-mapper weights.
-
-Run the regression checks in the activated environment with `python -m unittest discover -s tests -v`. The checkpoint tests require a CUDA GPU and the compiled extensions.
 
 &nbsp;
 
