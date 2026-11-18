@@ -2,3 +2,19 @@
 
 /* Compact controls for the two demo embeds. */
 body.embedded .toolbar,body.embedded .viewer-footer{display:none}body.embedded .controls{top:12px;bottom:auto;right:12px;padding:8px;max-width:150px}body.embedded .controls button,body.embedded .controls a{font-size:11px;padding:6px}body.embedded #exposure-control{font-size:10px}body.embedded .error-panel{max-width:90%;font-size:12px}body.embedded .loading{font-size:12px}
+
+/* The local studio uses monochrome chrome; scientific scene colors stay intact. */
+body.embedded{background:#131313;color:#444}
+body.embedded a{color:#555}
+body.embedded button,body.embedded select{border-color:#d9d9d9;color:#444}
+body.embedded button:hover{background:#eeeeee}
+body.embedded .controls{background:#fffffff0;border-color:#ddd;border-radius:5px;top:8px;right:8px;max-width:132px;padding:5px;gap:4px}
+body.embedded .controls button{font-size:10px;padding:4px 6px}
+body.embedded .controls>a{font-size:10px;padding:3px}
+body.embedded .controls input{accent-color:#555}
+body.embedded .controls output{color:#555}
+body.embedded .controls label{font-size:9px}
+body.embedded .loading{background:#f5f5f5;color:#777}
+body.embedded .loading span{border-color:#dedede;border-top-color:#666}
+body.embedded #progress{background:#666}
+body.embedded :focus-visible{outline-color:#777}

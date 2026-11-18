@@ -4,6 +4,7 @@ import copy
 import html
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -16,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 # Load pandas before Gradio starts callback threads; Plotly inspects its types.
 import pandas as pd
 import gradio as gr
+from gradio.themes.utils.colors import Color
 import numpy as np
 import plotly.graph_objects as go
 from fastapi import FastAPI
@@ -26,6 +28,7 @@ import uvicorn
 from utils.camera_paths import build_camera_path, export_keyframes, scene_preset, scene_registry
 
 SCENES = scene_registry()
+PREVIEWS = {item['id']: item for item in json.loads((ROOT / 'demo/scene-previews.json').read_text())}
 MOTIONS = {'Spiral forward & backward': 'spiral', 'Forward & backward': 'dolly',
            'Horizontal sway': 'horizontal', 'Vertical sway': 'vertical', 'Figure eight': 'figure-eight'}
 LOCK = threading.Lock()
@@ -46,27 +49,138 @@ def estimate_custom_preset(ply_path):
 
 
 def plot_path(preset):
-    poses, times = build_camera_path(preset)
+    poses, _ = build_camera_path(preset)
     centers = poses[:, :3, 3]
     forward = poses[0, :3, 2]
     peak = int(np.argmax((centers - centers[0]) @ forward))
     figure = go.Figure()
-    for points, label, color in [(centers[:peak + 1], 'Forward', '#479cae'),
-                                  (np.vstack([centers[peak:], centers[:1]]), 'Backward', '#e39a55')]:
-        figure.add_trace(go.Scatter3d(x=points[:, 0], y=points[:, 1], z=points[:, 2], mode='lines',
-                                     name=label, line=dict(color=color, width=5)))
-    for index, label, color in [(0, 'Start / finish', '#333333'), (peak, 'Forward peak', '#ca6a31')]:
+    for points, label, color, dash in [
+            (centers[:peak + 1], 'Forward', '#292929', 'solid'),
+            (np.vstack([centers[peak:], centers[:1]]), 'Backward', '#9a9a9a', 'dash')]:
+        figure.add_trace(go.Scatter3d(
+            x=points[:, 0], y=points[:, 1], z=points[:, 2], mode='lines', name=label,
+            line=dict(color=color, width=5, dash=dash)))
+    for index, label, color, symbol in [(0, 'Start / finish', '#292929', 'circle'),
+                                        (peak, 'Forward peak', '#777777', 'diamond')]:
         point = centers[index]
-        figure.add_trace(go.Scatter3d(x=[point[0]], y=[point[1]], z=[point[2]], mode='markers', name=label,
-                                     marker=dict(size=5, color=color)))
-    figure.update_layout(height=380, margin=dict(l=0, r=0, b=0, t=10),
-                         legend=dict(orientation='h', y=1), scene=dict(aspectmode='data',
-                         xaxis_title='World X', yaxis_title='World Y', zaxis_title='World Z'))
+        figure.add_trace(go.Scatter3d(
+            x=[point[0]], y=[point[1]], z=[point[2]], mode='markers', name=label,
+            marker=dict(size=5, color=color, symbol=symbol)))
+    axis = dict(backgroundcolor='#ffffff', gridcolor='#e5e5e5', zerolinecolor='#cccccc',
+                linecolor='#d9d9d9', color='#777777', showbackground=True)
+    figure.update_layout(
+        height=280, margin=dict(l=0, r=0, b=0, t=8), paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff', font=dict(family='Arial, sans-serif', size=10, color='#666666'),
+        legend=dict(orientation='h', y=1, x=0, bgcolor='#ffffff'),
+        scene=dict(aspectmode='data', bgcolor='#ffffff',
+                   xaxis=dict(axis, title='World X'), yaxis=dict(axis, title='World Y'),
+                   zaxis=dict(axis, title='World Z')))
     return figure
+
+
+def studio_theme():
+    gray = Color('#fafafa', '#f5f5f5', '#e5e5e5', '#d4d4d4', '#a3a3a3', '#737373',
+                 '#525252', '#404040', '#262626', '#171717', '#0a0a0a', name='gray')
+    theme = gr.themes.Base(primary_hue=gray, secondary_hue=gray, neutral_hue=gray,
+                           font=['Arial', 'Helvetica', 'sans-serif'],
+                           font_mono=['Consolas', 'monospace'])
+    settings = dict(
+        body_background_fill='#ffffff', body_text_color='#202020', body_text_color_subdued='#777777',
+        background_fill_primary='#ffffff', background_fill_secondary='#fafafa',
+        block_background_fill='#ffffff', block_border_color='#dddddd', block_shadow='none',
+        block_label_background_fill='#ffffff', block_label_text_color='#666666',
+        block_label_border_color='#dddddd', block_label_shadow='none',
+        input_background_fill='#ffffff', input_background_fill_focus='#ffffff',
+        input_background_fill_hover='#fafafa', input_border_color='#d9d9d9',
+        input_border_color_focus='#777777', input_border_color_hover='#a3a3a3',
+        input_shadow='none', input_shadow_focus='0 0 0 1px #a3a3a3',
+        button_primary_background_fill='#242424', button_primary_background_fill_hover='#111111',
+        button_primary_border_color='#242424', button_primary_border_color_hover='#111111',
+        button_primary_text_color='#ffffff', button_primary_text_color_hover='#ffffff',
+        button_primary_shadow='none', button_primary_shadow_hover='none',
+        button_primary_shadow_active='none',
+        button_secondary_background_fill='#ffffff', button_secondary_background_fill_hover='#f5f5f5',
+        button_secondary_border_color='#d4d4d4', button_secondary_border_color_hover='#999999',
+        button_secondary_text_color='#444444', button_secondary_text_color_hover='#222222',
+        button_secondary_shadow='none', button_secondary_shadow_hover='none',
+        button_secondary_shadow_active='none',
+        checkbox_background_color_selected='#444444', checkbox_border_color_selected='#444444',
+        checkbox_label_background_fill_selected='#eeeeee', checkbox_label_border_color_selected='#777777',
+        link_text_color='#555555', link_text_color_hover='#222222',
+        link_text_color_visited='#555555', link_text_color_active='#222222',
+        color_accent='#555555', color_accent_soft='#eeeeee', slider_color='#555555',
+        radio_circle='#444444', loader_color='#555555', error_background_fill='#f5f5f5',
+        error_border_color='#aaaaaa', error_text_color='#333333', error_icon_color='#666666')
+    available = theme.to_dict()['theme']
+    # Use the same light monochrome theme even when the browser prefers dark mode.
+    for key, value in list(settings.items()):
+        if key + '_dark' in available:
+            settings[key + '_dark'] = value
+    return theme.set(**{key: value for key, value in settings.items() if key in available})
+
+
+def video_html(url, label, poster=None):
+    poster_attr = ' poster="{}"'.format(html.escape(str(poster), quote=True)) if poster else ''
+    return ('<video controls playsinline loop preload="metadata" aria-label="{}"{} src="{}">'
+            'Your browser does not support MP4 video.</video>').format(
+                html.escape(label, quote=True), poster_attr, html.escape(str(url), quote=True))
+
+
+def viewer_html(base, mode):
+    return ('<iframe title="{} Gaussian point cloud" '
+            'src="{}/viewer/index.html?scene=render&amp;mode={}&amp;embed=1" '
+            'allow="fullscreen"></iframe>').format(mode.upper(), html.escape(base, quote=True), mode)
+
+
+def download_html(base, links):
+    suffix = '?download=true' if base.startswith('https://huggingface.co/') else ''
+    return '<div class="downloads-grid">' + ''.join(
+        '<a class="download-link" href="{}/{}" download>{}<span>{}</span></a>'.format(
+            html.escape(base, quote=True), html.escape(path + suffix, quote=True), html.escape(label),
+            html.escape(Path(path).suffix.lstrip('.').upper())) for label, path in links) + '</div>'
+
+
+def scene_summary(scene):
+    if scene == 'custom':
+        return '<div class="scene-info"><strong>Custom model</strong><span>Upload a point cloud and matching tone mapper</span></div>'
+    item = PREVIEWS[scene]
+    return '<div class="scene-info"><strong>{}</strong><span>{} scene · {:,} Gaussians</span></div>'.format(
+        html.escape(item['label']), item['group'].capitalize(), item['sourcePointCount'])
+
+
+def prepare_previews(outputs):
+    """Keep viewer code local and load published scene data directly from Hugging Face."""
+    for scene, item in PREVIEWS.items():
+        folder = outputs / 'previews' / scene
+        shutil.copytree(str(ROOT / 'demo/viewer'), str(folder / 'viewer'), dirs_exist_ok=True)
+        (folder / 'assets').mkdir(exist_ok=True)
+        metadata = copy.deepcopy(item)
+        metadata['id'] = 'render'
+        (folder / 'assets/scenes.json').write_text(json.dumps([metadata]))
+        (folder / 'camera-path-editable.json').write_text(json.dumps(export_keyframes(scene_preset(scene)), indent=2) + '\n')
+
+
+def scene_preview(scene):
+    if scene == 'custom':
+        empty = '<div class="empty-preview">Upload a model, then render to see your results.</div>'
+        return empty, empty, empty, empty, '', 'Upload a point cloud and tone mapper to begin.'
+    item = PREVIEWS[scene]
+    base = '/results/previews/' + scene
+    downloads = download_html(item['dataset_scene_url'].rstrip('/'), [
+        ('LDR video', 'videos/ldr.mp4'), ('HDR video', 'videos/hdr.mp4'),
+        ('LDR point cloud', 'point_clouds/ldr.splat'), ('HDR point cloud', 'point_clouds/hdr.splat'),
+        ('Camera trajectory', 'cameras/camera-path.json'), ('HDR display settings', 'tonemap.json')])
+    return (video_html(item['video'], item['label'] + ' LDR video',
+                       item['dataset_scene_url'] + 'posters/ldr.webp'),
+            video_html(item['hdrVideo'], item['label'] + ' HDR video',
+                       '/studio-assets/thumbnails/' + scene + '.webp'),
+            viewer_html(base, 'ldr'), viewer_html(base, 'hdr'), downloads,
+            'Showing the project-page preview. Adjust settings and render your own version.')
 
 
 def make_demo(renderer_python, models_root, outputs, gpu_id):
     outputs.mkdir(parents=True, exist_ok=True)
+    prepare_previews(outputs)
 
     def model_for(scene, ply, mapper):
         if scene == 'custom':
@@ -112,7 +226,7 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
         folder.mkdir()
         destination = folder / 'camera-path.json'
         destination.write_text(json.dumps(export_keyframes(preset), indent=2) + '\n')
-        return plot_path(preset), str(destination)
+        return plot_path(preset), str(destination), 'Trajectory updated. Download its camera JSON or render both videos.'
 
     def render_pair(scene, ply, mapper, custom, motion, forward, horizontal, vertical, turns, seconds, fps,
                     low, high, brightness_mode, fixed, size, hdr_ev, progress=gr.Progress()):
@@ -151,89 +265,145 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
             try:
                 os.link(str(original), str(target))
             except OSError:
-                import shutil
                 shutil.copy2(str(original), str(target))
         base = '/results/' + job
-        def viewer(mode):
-            return '<iframe title="{} Gaussian point cloud" src="{}/viewer/index.html?scene=render&mode={}&embed=1" style="width:100%;height:410px;border:0;border-radius:8px" allow="fullscreen"></iframe>'.format(mode.upper(), base, mode)
         links = [('LDR video', 'ldr.mp4'), ('HDR video', 'hdr.mp4'),
-                 ('LDR visualization splat', 'assets/scenes/render/ldr.splat'),
-                 ('HDR visualization splat', 'assets/scenes/render/hdr.splat'),
-                 ('Original HDR-GS point cloud', 'point_cloud.ply'), ('Tone mapper', 'tone_mapper.pth'),
-                 ('Editable camera JSON', 'camera-path-editable.json'), ('HDR display settings', 'tonemap.json'),
-                 ('Raw HDR frame (EXR)', 'frames_hdr/{:06d}.exr'.format(len(build_camera_path(preset)[0]) // 2))]
-        downloads = '<div style="display:flex;flex-wrap:wrap;gap:10px">' + ''.join(
-            '<a href="{}/{}" download style="padding:7px 12px;border:1px solid #d6dce0;border-radius:6px">{}</a>'.format(base, path, html.escape(label))
-            for label, path in links) + '</div>'
+                 ('LDR point cloud', 'assets/scenes/render/ldr.splat'),
+                 ('HDR point cloud', 'assets/scenes/render/hdr.splat'),
+                 ('Original point cloud', 'point_cloud.ply'), ('Tone mapper', 'tone_mapper.pth'),
+                 ('Camera trajectory', 'camera-path-editable.json'), ('HDR display settings', 'tonemap.json'),
+                 ('Raw HDR frame', 'frames_hdr/{:06d}.exr'.format(len(build_camera_path(preset)[0]) // 2))]
         progress(1, desc='Ready')
-        return ('Rendered both videos. The two viewers use corresponding LDR and HDR colors.',
-                str(folder / 'ldr.mp4'), str(folder / 'hdr.mp4'), viewer('ldr'), viewer('hdr'), downloads,
+        return ('Render complete. Both videos, interactive point clouds and source files are ready.',
+                video_html(base + '/ldr.mp4', 'Rendered LDR video'),
+                video_html(base + '/hdr.mp4', 'Rendered HDR video'),
+                viewer_html(base, 'ldr'), viewer_html(base, 'hdr'), download_html(base, links),
                 plot_path(preset), str(editable))
 
     def choose_scene(scene):
         preset = scene_preset(scene) if scene != 'custom' else scene_preset('bathroom')
-        return gr.update(visible=scene == 'custom'), preset.get('brightness_maximum', .5), plot_path(preset)
+        gallery_index = next((i for i, item in enumerate(SCENES) if item['id'] == scene), None)
+        return (gr.update(visible=scene == 'custom'), preset.get('brightness_maximum', .5),
+                plot_path(preset) if scene != 'custom' else None,
+                *scene_preview(scene), scene_summary(scene), gr.update(selected_index=gallery_index),
+                str(outputs / 'previews' / scene / 'camera-path-editable.json') if scene != 'custom' else None)
+
+    def select_thumbnail(event: gr.SelectData):
+        return SCENES[int(event.index)]['id']
+
+    def brightness_visibility(mode):
+        is_fixed = mode == 'Fixed brightness'
+        return gr.update(visible=is_fixed), gr.update(visible=not is_fixed)
 
     example = dict(version=1, convention='OpenCV C2W: +X right, +Y down, +Z forward',
                    duration_seconds=4, fps=30, camera_intrinsics=dict(width=720, height=720, fx=864, fy=864),
                    keyframes=[dict(time_seconds=t, camera_to_world=[[1,0,0,0],[0,1,0,0],[0,0,1,z],[0,0,0,1]])
                               for t,z in [(0,0),(2,1),(4,0)]])
-    css = '.gradio-container{max-width:1540px!important} .studio-note{color:#6a6a6a}'
-    with gr.Blocks(title='HDR-GS Studio', css=css, theme=gr.themes.Soft(primary_hue='cyan')) as demo:
-        gr.Markdown('# HDR-GS Studio\nRender a forward-and-back camera path with LDR exposure control and HDR radiance.')
-        scene = gr.Dropdown(choices=[(s['label'], s['id']) for s in SCENES] + [('Upload custom model', 'custom')],
-                            value='bathroom', label='Scene')
-        with gr.Group(visible=False) as uploads:
+    initial = scene_preview('bathroom')
+    thumbnails = [(str(ROOT / 'demo' / PREVIEWS[item['id']]['thumbnail']), item['label']) for item in SCENES]
+    with gr.Blocks(
+            title='HDR-GS Studio', css=(ROOT / 'demo/static/app.css').read_text(), theme=studio_theme(),
+            js="()=>{document.documentElement.classList.remove('dark');document.body.classList.remove('dark');}") as demo:
+        gr.HTML('<header class="app-header"><div><h1>HDR-GS <span>NeurIPS 2024</span></h1>'
+                '<p>Novel-view synthesis &amp; interactive Gaussian exploration</p></div></header>', padding=False)
+        with gr.Row(elem_id='scene-row', equal_height=True):
+            with gr.Column(scale=0, min_width=100, elem_id='scene-toolbar'):
+                gr.HTML('<div class="scene-heading">Choose a scene</div>', padding=False)
+                upload_button = gr.Button('Upload model', elem_id='upload-model')
+            with gr.Column(min_width=0, elem_id='scene-strip'):
+                gallery = gr.Gallery(
+                    thumbnails, columns=12, rows=1, height=90, allow_preview=False, selected_index=0,
+                    object_fit='contain', show_label=False, container=False, interactive=False,
+                    show_download_button=False, show_fullscreen_button=False, elem_id='scene-gallery')
+        with gr.Group(visible=False, elem_classes='uploads') as uploads:
             with gr.Row():
                 ply = gr.File(label='HDR-GS point_cloud.ply', file_types=['.ply'], type='filepath')
                 mapper = gr.File(label='Matching tone_mapper.pth', file_types=['.pth', '.pt'], type='filepath')
-        with gr.Row():
-            with gr.Column(scale=1):
+        with gr.Row(equal_height=False, elem_id='main-layout'):
+            with gr.Column(scale=1, min_width=0, elem_id='control-panel'):
+                summary = gr.HTML(scene_summary('bathroom'), padding=False, elem_id='scene-summary')
+                scene = gr.Dropdown(
+                    choices=[(item['label'], item['id']) for item in SCENES] + [('Custom model', 'custom')],
+                    value='bathroom', label='Scene')
+                gr.HTML('<div class="control-section-title">Camera</div>', padding=False)
                 motion = gr.Dropdown(list(MOTIONS), value='Spiral forward & backward', label='Camera path')
                 forward = gr.Slider(.1, 2, 1, step=.05, label='Forward travel × scene preset')
+                with gr.Accordion('Motion settings', open=False, elem_id='camera-options'):
+                    with gr.Row():
+                        horizontal = gr.Slider(0, 2, 1, step=.05, label='Horizontal amplitude ×', min_width=80)
+                        vertical = gr.Slider(0, 2, 1, step=.05, label='Vertical amplitude ×', min_width=80)
+                    turns = gr.Slider(.5, 4, 2, step=.5, label='Spiral turns per leg')
+                seconds = gr.Slider(2, 30, 16, step=1, label='Duration (seconds)')
                 with gr.Row():
-                    horizontal = gr.Slider(0, 2, 1, step=.05, label='Horizontal amplitude ×')
-                    vertical = gr.Slider(0, 2, 1, step=.05, label='Vertical amplitude ×')
-                turns = gr.Slider(.5, 4, 2, step=.5, label='Spiral turns per leg')
-                with gr.Row():
-                    seconds = gr.Slider(2, 30, 16, step=1, label='Duration (seconds)')
-                    fps = gr.Dropdown([12,24,30,60], value=60, label='FPS')
-                    size = gr.Dropdown([240,480,720,960], value=720, label='Video long side (px)')
-                with gr.Accordion('Custom camera JSON', open=False):
-                    custom = gr.File(label='Upload camera path (overrides path controls)', file_types=['.json'], type='filepath')
-                    gr.Markdown('OpenCV camera-to-world matrices: **+X right, +Y down, +Z forward**. Start at 0 seconds, move forward first, then return to the same camera pose. The last keyframe is the closed endpoint; it is omitted from the encoded loop.')
-                    gr.Code(json.dumps(example, indent=2), language='json', label='Editable trajectory format')
-                brightness_mode = gr.Radio(['Project-page gradient', 'Fixed brightness'], value='Project-page gradient', label='LDR brightness')
-                fixed = gr.Slider(.01, .9, .35, step=.005, label='Fixed mean luminance')
-                with gr.Row():
-                    low = gr.Slider(.01, .5, .065, step=.005, label='Gradient minimum')
-                    high = gr.Slider(.1, .9, .525, step=.005, label='Gradient peak')
-                hdr_ev = gr.Slider(-4,4,0,step=.1,label='HDR display exposure (EV)')
-            with gr.Column(scale=1):
-                trajectory_plot = gr.Plot(value=plot_path(scene_preset('bathroom')), label='Camera trajectory')
-                preview_button = gr.Button('Preview trajectory')
-                trajectory_download = gr.File(label='Download editable camera JSON', interactive=False)
-                gr.Markdown('The camera always travels forward before returning. Spirals keep the same winding direction. HDR videos use one fixed Reinhard calibration for the entire clip.', elem_classes='studio-note')
-                render_button = gr.Button('Render LDR + HDR', variant='primary', size='lg')
-                status = gr.Markdown('Choose a scene and preview its camera path, or render both outputs.')
-        with gr.Row():
-            ldr_video = gr.Video(label='LDR · learned tone mapper', format='mp4', interactive=False)
-            hdr_video = gr.Video(label='HDR · Reinhard display', format='mp4', interactive=False)
-        with gr.Row():
-            with gr.Column():
-                gr.Markdown('### LDR Gaussian point cloud')
-                ldr_viewer = gr.HTML('<p>Render a scene to explore its LDR point cloud.</p>')
-            with gr.Column():
-                gr.Markdown('### HDR Gaussian point cloud')
-                hdr_viewer = gr.HTML('<p>Render a scene to explore its HDR point cloud.</p>')
-        gr.Markdown('### Downloads\nMP4 previews play on standard screens. EXR frames retain float32 HDR radiance; the original PLY retains all trained Gaussians and spherical harmonics. Interactive previews bake reference-view colors.')
-        downloads = gr.HTML()
+                    fps = gr.Dropdown([12, 24, 30, 60], value=60, label='FPS', min_width=70)
+                    size = gr.Dropdown([240, 480, 720, 960], value=720, label='Video long side (px)', min_width=110)
+                with gr.Accordion('LDR / HDR appearance', open=False, elem_id='brightness-options'):
+                    brightness_mode = gr.Radio(['Project-page gradient', 'Fixed brightness'],
+                                               value='Project-page gradient', label='LDR brightness')
+                    fixed = gr.Slider(.01, .9, .35, step=.005, label='Fixed mean luminance', visible=False)
+                    with gr.Group() as gradient_controls:
+                        low = gr.Slider(.01, .5, .065, step=.005, label='Gradient minimum')
+                        high = gr.Slider(.1, .9, scene_preset('bathroom')['brightness_maximum'],
+                                         step=.005, label='Gradient peak')
+                    hdr_ev = gr.Slider(-4, 4, 0, step=.1, label='HDR display exposure (EV)')
+                    gr.Markdown('HDR uses one fixed Reinhard calibration for the full clip.', elem_classes='helper')
+                with gr.Accordion('Custom camera path', open=False, elem_id='custom-camera'):
+                    custom = gr.File(label='Upload camera JSON', file_types=['.json'], type='filepath')
+                    gr.Markdown('Overrides the camera controls. See **Camera JSON format** below the trajectory.',
+                                elem_classes='helper')
+                render_button = gr.Button('Render LDR + HDR', variant='primary', elem_id='render-button')
+                status = gr.Markdown(initial[5], elem_id='render-status')
+            with gr.Column(scale=4, min_width=0, elem_id='workspace'):
+                with gr.Row(elem_id='video-row'):
+                    with gr.Column(scale=1, min_width=0):
+                        gr.HTML('<div class="panel-heading">LDR video <span>Learned tone mapper</span></div>', padding=False)
+                        ldr_video = gr.HTML(initial[0], padding=False, elem_id='ldr-video', elem_classes='media-html')
+                    with gr.Column(scale=1, min_width=0):
+                        gr.HTML('<div class="panel-heading">HDR video <span>Reinhard display</span></div>', padding=False)
+                        hdr_video = gr.HTML(initial[1], padding=False, elem_id='hdr-video', elem_classes='media-html')
+                with gr.Row(elem_id='point-row'):
+                    with gr.Column(scale=1, min_width=0):
+                        gr.HTML('<div class="panel-heading">LDR point cloud <span>Interactive</span></div>', padding=False)
+                        ldr_viewer = gr.HTML(initial[2], padding=False, elem_id='ldr-viewer', elem_classes='media-html')
+                    with gr.Column(scale=1, min_width=0):
+                        gr.HTML('<div class="panel-heading">HDR point cloud <span>Interactive</span></div>', padding=False)
+                        hdr_viewer = gr.HTML(initial[3], padding=False, elem_id='hdr-viewer', elem_classes='media-html')
+                gr.Markdown('Drag to orbit · Right-drag to pan · Scroll to zoom', elem_classes='helper')
+                with gr.Tabs(elem_classes='workspace-tabs'):
+                    with gr.Tab('Trajectory'):
+                        trajectory_plot = gr.Plot(value=plot_path(scene_preset('bathroom')), show_label=False,
+                                                  elem_id='trajectory-plot')
+                        with gr.Row(elem_classes='trajectory-actions'):
+                            preview_button = gr.Button('Preview trajectory', elem_id='preview-button', scale=0)
+                            trajectory_download = gr.DownloadButton(
+                                'Download camera JSON', value=str(outputs / 'previews/bathroom/camera-path-editable.json'),
+                                elem_id='download-camera', scale=0)
+                        gr.Markdown('Forward first, then back to the start. Spiral rotation keeps its direction.',
+                                    elem_classes='helper')
+                        with gr.Accordion('Camera JSON format', open=False):
+                            gr.Markdown('OpenCV camera-to-world matrices: **+X right, +Y down, +Z forward**. '
+                                        'Begin at 0 seconds, move forward, then return to the starting pose. '
+                                        'The final keyframe closes the loop.', elem_classes='helper')
+                            gr.Code(json.dumps(example, indent=2), language='json', label='Editable trajectory format',
+                                    elem_classes='format-code')
+                    with gr.Tab('Downloads'):
+                        gr.HTML('<p class="downloads-note">MP4 previews play on standard screens. '
+                                'Splat files are interactive previews. After rendering, you can also download '
+                                'the original model, tone mapper and an EXR frame with full HDR radiance.</p>', padding=False)
+                        downloads = gr.HTML(initial[4], padding=False)
         camera_inputs = [scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high]
-        scene.change(choose_scene, [scene], [uploads, high, trajectory_plot])
-        preview_button.click(preview, camera_inputs, [trajectory_plot, trajectory_download], api_name='preview_trajectory')
+        gallery.select(select_thumbnail, outputs=[scene], queue=False, api_name=False, show_progress='hidden')
+        upload_button.click(lambda: 'custom', outputs=[scene], queue=False, api_name=False, show_progress='hidden')
+        scene.change(choose_scene, [scene], [uploads, high, trajectory_plot, ldr_video, hdr_video,
+                     ldr_viewer, hdr_viewer, downloads, status, summary, gallery, trajectory_download], show_progress='hidden')
+        brightness_mode.change(brightness_visibility, [brightness_mode], [fixed, gradient_controls],
+                               queue=False, api_name=False, show_progress='hidden')
+        preview_button.click(preview, camera_inputs, [trajectory_plot, trajectory_download, status],
+                             api_name='preview_trajectory', show_progress='minimal')
         render_button.click(render_pair, [scene, ply, mapper, custom, motion, forward, horizontal, vertical,
             turns, seconds, fps, low, high, brightness_mode, fixed, size, hdr_ev],
-            [status, ldr_video, hdr_video, ldr_viewer, hdr_viewer, downloads, trajectory_plot, trajectory_download], api_name='render_pair', concurrency_limit=1)
+            [status, ldr_video, hdr_video, ldr_viewer, hdr_viewer, downloads, trajectory_plot, trajectory_download],
+            api_name='render_pair', concurrency_limit=1, show_progress='minimal')
     return demo
 
 
@@ -249,7 +419,8 @@ def main():
     demo = make_demo(args.renderer_python.resolve(), args.models_root.resolve(), args.outputs.resolve(), args.gpu_id)
     app = FastAPI()
     app.mount('/results', StaticFiles(directory=str(args.outputs.resolve())), name='results')
-    app = gr.mount_gradio_app(app, demo.queue(max_size=8), path='/', allowed_paths=[str(args.outputs.resolve())])
+    app.mount('/studio-assets', StaticFiles(directory=str(ROOT / 'demo/static')), name='studio-assets')
+    app = gr.mount_gradio_app(app, demo.queue(max_size=8), path='/', allowed_paths=[str(args.outputs.resolve()), str(ROOT / 'demo/static')])
     uvicorn.run(app, host=args.host, port=args.port)
 
 
