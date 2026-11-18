@@ -20,7 +20,8 @@ from utils.camera_paths import ROOT, build_camera_path, retime_preset, scene_pre
 from utils.graphics_utils import getProjectionMatrix, getWorld2View2
 from utils.hdr_visualization import fit_reinhard, tonemap_hdr, write_exr
 from utils.sh_utils import eval_sh
-from utils.splat_io import compact_splats
+from utils.splat_io import compact_splats, gzip_bytes
+from utils.viewer_cache import color_key, file_sha256, geometry_key, read_entry, restore_entry, store_entry
 
 
 def make_camera(c2w, intrinsics, max_size, crop=1):
@@ -64,6 +65,7 @@ def add_arguments(parser, mode):
     parser.add_argument('--no_viewer', action='store_true', help='Skip interactive viewer exports')
     parser.add_argument('--progress_json', action='store_true', help='Emit structured progress for the Gradio UI')
     parser.add_argument('--viewer_max_points', type=int, default=600000)
+    parser.add_argument('--viewer_cache', type=Path, help='Reusable HDR geometry and LDR-color cache; defaults beside output directories')
     if mode == 'ldr':
         parser.add_argument('--brightness', type=float, help='Fixed mean luminance in (0,1); omit for project-page gradient')
     else:
@@ -75,12 +77,13 @@ def add_arguments(parser, mode):
     return parser
 
 
-def write_splat(model, colors, path, keep):
+def write_splat(model, colors, path, keep, selected_colors=False):
     data = np.zeros((len(keep), 32), dtype=np.uint8)
     for offset, values in [(0, model.get_xyz), (12, model.get_scaling)]:
         xyz = values[keep].cpu().numpy().astype('<f4')
         data[:, offset:offset + 12] = np.ascontiguousarray(xyz).view(np.uint8).reshape(-1, 12)
-    data[:, 24:27] = np.round(np.clip(colors[keep].cpu().numpy(), 0, 1) * 255).astype('uint8')
+    values = colors if selected_colors else colors[keep]
+    data[:, 24:27] = np.round(np.clip(values.cpu().numpy(), 0, 1) * 255).astype('uint8')
     data[:, 27] = np.round(np.clip(model.get_opacity[keep, 0].cpu().numpy(), 0, 1) * 255).astype('uint8')
     data[:, 28:32] = np.round(np.clip(model.get_rotation[keep].cpu().numpy() * 128 + 128, 0, 255)).astype('uint8')
     data.tofile(str(path))
@@ -91,6 +94,7 @@ class SceneRenderer:
         self.model = GaussianModel(3)
         self.model.load_ply(str(model_file))
         self.has_mapper = tone_mapper.is_file()
+        self.mapper_hash = file_sha256(tone_mapper) if self.has_mapper else None
         if self.has_mapper:
             self.model.load_tonemapper(str(tone_mapper))
             for channel in 'rgb':
@@ -165,48 +169,95 @@ class SceneRenderer:
             raise ValueError('Requested brightness {:.4f} is unreachable (closest {:.4f})'.format(target, mean))
         return (image.permute(1, 2, 0).cpu().numpy() * 255).round().astype('uint8'), mean, ev
 
-    def export_viewer(self, output, poses, settings, mean_target, exposure_ev, max_points, model_hash):
+    def export_viewer(self, output, poses, settings, mean_target, exposure_ev, max_points, model_hash, cache_root=None):
         model = self.model
         folder = output / 'assets/scenes' / 'render'
         folder.mkdir(parents=True, exist_ok=True)
+        # Output files may be hard links to immutable cache entries. Remove them
+        # before generating a different exposure into an existing output folder.
+        for name in ['hdr.splat', 'ldr.splat', 'gaussians.splat.gz', 'ldr.rgb.gz']:
+            if (folder / name).exists():
+                (folder / name).unlink()
         reference = self.camera(poses[0])
-        direction = model.get_xyz - reference.camera_center
-        direction /= direction.norm(dim=1, keepdim=True).clamp_min(1e-8)
-        log_rgb = eval_sh(model.active_sh_degree, model.get_features.transpose(1, 2), direction) + .5
-        opacity = model.get_opacity[:, 0]
-        scores = model.get_scaling.prod(dim=1) * opacity
-        keep = torch.where(opacity > 1 / 255)[0]
-        if len(keep) > max_points:
-            keep = keep[torch.topk(scores[keep], max_points, sorted=False).indices]
-        keep = keep[torch.argsort(scores[keep], descending=True)]
-        radiance = log_rgb.exp()
-        # A scalar encoding range retains HDR through byte-color splat storage.
-        hdr_range = max(float(torch.quantile(radiance[keep].reshape(-1), .99999)), 1.)
-        encoded = torch.log1p(radiance.clamp(0, hdr_range)) / math.log1p(hdr_range)
-        write_splat(model, encoded, folder / 'hdr.splat', keep)
-        ldr_exposure = None
-        if self.has_mapper:
-            _, _, ev = self.ldr(poses[0], mean_target, size=240)
-            ldr_exposure = float(self.preset.get('base_exposure', 1.)) * 2 ** ev
-            channels = []
-            for index, channel in enumerate('rgb'):
-                value = log_rgb[:, index:index + 1] + math.log(ldr_exposure)
-                for layer in getattr(model, 'tone_mapper_' + channel):
-                    value = layer(value)
-                channels.append(value)
-            write_splat(model, torch.cat(channels, dim=1), folder / 'ldr.splat', keep)
         intr = self.preset['camera_intrinsics']
         crop = self.preset.get('viewport_crop', 1.)
+        hdr_key = geometry_key(model_hash, poses[0], intr, crop, max_points)
+        cache_root = Path(cache_root) if cache_root else output.parent / '.viewer-cache'
+        hdr_folder = cache_root / 'hdr' / hdr_key
+        hdr_info = read_entry(hdr_folder)
+        hdr_hit = hdr_info is not None
+        keep, log_rgb = None, None
+
+        def selected_colors():
+            nonlocal keep, log_rgb
+            if keep is None:
+                opacity = model.get_opacity[:, 0]
+                scores = model.get_scaling.prod(dim=1) * opacity
+                keep = torch.where(opacity > 1 / 255)[0]
+                if len(keep) > max_points:
+                    keep = keep[torch.topk(scores[keep], max_points, sorted=False).indices]
+                keep = keep[torch.argsort(scores[keep], descending=True)]
+            if log_rgb is None:
+                direction = model.get_xyz[keep] - reference.camera_center
+                direction /= direction.norm(dim=1, keepdim=True).clamp_min(1e-8)
+                log_rgb = eval_sh(model.active_sh_degree, model.get_features[keep].transpose(1, 2), direction) + .5
+            return log_rgb
+
+        if hdr_hit:
+            restore_entry(hdr_folder, folder, ['hdr.splat', 'gaussians.splat.gz'])
+        else:
+            radiance = selected_colors().exp()
+            hdr_range = max(float(torch.quantile(radiance.reshape(-1), .99999)), 1.)
+            encoded = torch.log1p(radiance.clamp(0, hdr_range)) / math.log1p(hdr_range)
+            write_splat(model, encoded, folder / 'hdr.splat', keep, selected_colors=True)
+            packing = compact_splats(folder)
+            hdr_info = dict(hdrRange=hdr_range, webPointCount=len(keep), **packing)
+            store_entry(hdr_folder, {name: folder / name for name in ['hdr.splat', 'gaussians.splat.gz']}, hdr_info)
+
+        packing = {key: hdr_info[key] for key in ['gaussianEncoding', 'gaussianAsset', 'hdrSplatSHA256']}
+        ldr_exposure, ldr_hit = None, False
+        if self.has_mapper:
+            ldr_key = color_key(hdr_key, self.mapper_hash, mean_target, self.preset.get('base_exposure', 1.))
+            ldr_folder = cache_root / 'ldr' / ldr_key
+            ldr_info = read_entry(ldr_folder)
+            ldr_hit = ldr_info is not None
+            if ldr_hit:
+                restore_entry(ldr_folder, folder, ['ldr.splat', 'ldr.rgb.gz'])
+            else:
+                # The geometry/HDR splat is unchanged. Re-evaluate only the
+                # selected Gaussians' MLP colors for a new LDR brightness.
+                log_colors = selected_colors()
+                _, _, ev = self.ldr(poses[0], mean_target, size=240)
+                ldr_exposure = float(self.preset.get('base_exposure', 1.)) * 2 ** ev
+                channels = []
+                for index, channel in enumerate('rgb'):
+                    value = log_colors[:, index:index + 1] + math.log(ldr_exposure)
+                    for layer in getattr(model, 'tone_mapper_' + channel):
+                        value = layer(value)
+                    channels.append(value)
+                rgb = np.round(np.clip(torch.cat(channels, dim=1).cpu().numpy(), 0, 1) * 255).astype('uint8')
+                data = np.fromfile(str(folder / 'hdr.splat'), dtype=np.uint8).reshape(-1, 32)
+                if len(data) != len(rgb):
+                    raise ValueError('Cached geometry does not match the source model')
+                data[:, 24:27] = rgb
+                data.tofile(str(folder / 'ldr.splat'))
+                (folder / 'ldr.rgb.gz').write_bytes(gzip_bytes(rgb.tobytes()))
+                ldr_info = dict(ldrExposure=ldr_exposure, ldrSplatSHA256=file_sha256(folder / 'ldr.splat'))
+                store_entry(ldr_folder, {name: folder / name for name in ['ldr.splat', 'ldr.rgb.gz']}, ldr_info)
+            ldr_exposure = ldr_info['ldrExposure']
+            packing.update(ldrColorAsset='ldr.rgb.gz', ldrSplatSHA256=ldr_info['ldrSplatSHA256'])
+
         metadata = dict(id='render', label=self.preset.get('name', 'Custom scene'), group='synthetic',
-            sourcePointCount=len(model.get_xyz), webPointCount=len(keep), sourceSHA256=model_hash,
-            hdrEncoding='log1p-radiance', hdrRange=hdr_range, hdrToneMap=settings,
+            sourcePointCount=len(model.get_xyz), webPointCount=hdr_info['webPointCount'], sourceSHA256=model_hash,
+            hdrEncoding='log1p-radiance', hdrRange=hdr_info['hdrRange'], hdrToneMap=settings,
             hdrDisplayExposureEV=exposure_ev, ldrExposure=ldr_exposure,
             ldrBrightness=mean_target, camera=dict(worldToCam=reference.world_view_transform.T.cpu().numpy().reshape(-1).tolist(),
                 width=reference.image_width, height=reference.image_height,
                 fx=intr['fx'] * reference.image_width / intr['width'] * crop,
                 fy=intr['fy'] * reference.image_height / intr['height'] * crop),
-            webColorPolicy='Reference-view SH colors. Learned MLP LDR; log-encoded linear HDR, decoded before alpha composition and Reinhard display mapping.')
-        metadata.update(compact_splats(folder))
+            webColorPolicy='Reference-view SH colors. Learned MLP LDR; log-encoded linear HDR, decoded before alpha composition and Reinhard display mapping.',
+            viewerCache=dict(hdr_hit=hdr_hit, ldr_hit=ldr_hit))
+        metadata.update(packing)
         (folder / 'scene.json').write_text(json.dumps(metadata, indent=2) + '\n')
         (output / 'assets/scenes.json').write_text(json.dumps([metadata], indent=2) + '\n')
         source = ROOT / 'demo/viewer'
@@ -358,7 +409,7 @@ def render_video(mode, args):
             if previous_ldr.get('brightness_mode') == 'fixed':
                 viewer_brightness = float(previous_ldr['frame_stats'][0]['brightness_target'])
         viewer = renderer.export_viewer(output, poses, settings, viewer_brightness, exposure_ev,
-                                       args.viewer_max_points, model_hash)
+                                       args.viewer_max_points, model_hash, getattr(args, 'viewer_cache', None))
     torch.cuda.synchronize()
     timings['point_clouds_seconds'] = time.perf_counter() - viewer_started
     timings['total_seconds'] = time.perf_counter() - started

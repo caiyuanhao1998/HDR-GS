@@ -174,7 +174,7 @@ This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the foll
 
 &nbsp;
 
-Precomputed videos, interactive Gaussian previews, camera paths and HDR samples are organized in the dataset’s [visualizations folder](https://huggingface.co/datasets/CaiYuanhao/HDR-GS/tree/main/visualizations).
+Precomputed videos, camera paths and HDR samples are organized in the dataset’s [visualizations folder](https://huggingface.co/datasets/CaiYuanhao/HDR-GS/tree/main/visualizations). Interactive Gaussian point clouds are stored in the [HF Model visualization folder](https://huggingface.co/CaiYuanhao/HDR-GS/tree/main/visualizations).
 
 ## 3. Testing
 We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1VVUiC794FWJddZz1ZEio_A?pwd=cyh2) (code: `cyh2`) and then put it into the folder `pretrained_weights`.

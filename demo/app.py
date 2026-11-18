@@ -299,7 +299,7 @@ def scene_preview(scene, outputs=None):
     hdr_url = base + '/videos/hdr-8s-30fps.mp4' if has_short_preview else item['hdrVideo']
     downloads = download_html(item['dataset_scene_url'].rstrip('/'), [
         ('LDR video', ldr_url), ('HDR video', hdr_url),
-        ('LDR point cloud', 'point_clouds/ldr.splat'), ('HDR point cloud', 'point_clouds/hdr.splat'),
+        ('LDR point cloud', item['assetBase'] + 'ldr.splat'), ('HDR point cloud', item['assetBase'] + 'hdr.splat'),
         ('Camera trajectory', base + '/camera-path-editable.json'), ('HDR display settings', 'tonemap.json')])
     note = ('Scene preview · 8 s / 30 FPS. Adjust settings to render a new version.' if has_short_preview else
             'Project-page preview · 16 s / 60 FPS. Render to apply your settings.')
@@ -418,7 +418,7 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                             fraction += base
                         elif stage == 'done' and mode == 'hdr':
                             fraction = .45
-                        label = 'Exporting point clouds' if stage == 'point_clouds' else 'Rendering {} video'.format(mode.upper())
+                        label = 'Preparing point-cloud viewers' if stage == 'point_clouds' else 'Rendering {} video'.format(mode.upper())
                         detail = ('Frame {:,} / {:,}'.format(completed, total) if stage == 'frames' else
                                   dict(loading='Loading model', calibration='Calibrating HDR display',
                                        encoding='Encoding MP4', point_clouds='Preparing both interactive viewers',

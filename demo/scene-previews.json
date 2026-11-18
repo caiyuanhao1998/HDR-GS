@@ -51,11 +51,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "6971c172a90bdd3d60ab32f224168afb73468583cc6df667f6a92c11a8a91baf",
     "ldrSplatSHA256": "514bb88c2e9287e1c630bf98f3e82b8395c09914fccbdbc0b3356e702a703de6",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bathroom/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/bathroom/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bathroom/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bathroom/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/bathroom.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bathroom/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bathroom/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "bear",
@@ -109,11 +111,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "f5b9aca553dcb6813a99687a79fe63829ace22886c8a67c37592681352d4f614",
     "ldrSplatSHA256": "72858adcab8912d55d291f9f01929764dc609d55542380a2bad91db146723bfc",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bear/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/bear/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bear/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bear/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/bear.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bear/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/bear/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "chair",
@@ -167,11 +171,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "da55789b1a373be24093703c7ef374a0660bfe711369cc041412545f45bbf6d0",
     "ldrSplatSHA256": "7d2436e0b437abfcd722ac60a8fbe1e61a2052804cea71b8c94f654e58337977",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/chair/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/chair/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/chair/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/chair/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/chair.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/chair/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/chair/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "desk",
@@ -225,11 +231,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "6a6a9f5ea17195cef5d7d6e82e1e96331539eaf96d3a2fbf4f1bf5f048958984",
     "ldrSplatSHA256": "79b25f8b82aed3b4b220094bb355a6abb391d9099403ec90a3cff59adaf27824",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/desk/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/desk/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/desk/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/desk/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/desk.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/desk/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/desk/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "diningroom",
@@ -283,11 +291,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "1cdd7fb948f5c3f4114bbbeb48ea130cc15fed8ec187bb02e8299277c8954513",
     "ldrSplatSHA256": "c7208b822c10d5856858982ec0a1e2bec3926b9fa444dd377e024c6ffc86a14f",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/diningroom/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/diningroom/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/diningroom/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/diningroom/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/diningroom.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/diningroom/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/diningroom/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "dog",
@@ -341,11 +351,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "f89f29c023d23fb1de738d7bbe4890fd009351d4312eb41352caf3585a7a5e3b",
     "ldrSplatSHA256": "5ba2c456ff641980b2555658a1af5fbc68801de0e734356e90546fc029f10d50",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/dog/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/dog/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/dog/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/dog/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/dog.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/dog/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/dog/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "sofa",
@@ -399,11 +411,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "913e79829f6dd9878d45b94630984fa5d7c88f6bfb13d3e90c2c083c28ff139f",
     "ldrSplatSHA256": "5f8a9053560f79843b3cc140c5873a093ee39779a74b9bc9d3092da124a2832d",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sofa/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/sofa/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sofa/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sofa/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/sofa.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sofa/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sofa/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "sponza",
@@ -457,11 +471,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "5f8b34501ced725eb6a8fab251032ce62798112dd9666379fbc7668bc81f31a0",
     "ldrSplatSHA256": "f409d61574e39213e1e06f2efd7ce0a2037423ebff8b511f2cb90e394e3b6f93",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sponza/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/synthetic/sponza/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sponza/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sponza/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/sponza.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sponza/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/synthetic/sponza/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "flower",
@@ -515,11 +531,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "8f2e4c2fc8e8ecfffb6e9aed635b09cac21e9834f4eb41421f6de7ee637bbba1",
     "ldrSplatSHA256": "96a9db6fa000a147261635aa4f5453deaef8c9e1f36331ff0d22179b5b74070f",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/flower/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/real/flower/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/flower/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/flower/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/flower.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/flower/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/flower/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "computer",
@@ -573,11 +591,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "54ddcd2e94d36cb485c88c92cc4691f913e600eafda1e7fb71e874a3d5dce510",
     "ldrSplatSHA256": "b767d23960d8c0cad7a159246fd64d8eb94a27b9efedf6d08f002ab90c6f40d2",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/computer/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/real/computer/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/computer/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/computer/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/computer.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/computer/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/computer/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "box",
@@ -631,11 +651,13 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "724039fe202058ccee944eb4743108e28782639c1252ca1b753e8c020132981d",
     "ldrSplatSHA256": "a398dcfe62812f3a8ab3acb1c042b6b91b7f54c99bc8a1443dc7383680e42b6f",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/box/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/real/box/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/box/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/box/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/box.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/box/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/box/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   },
   {
     "id": "luckycat",
@@ -689,10 +711,12 @@
     "ldrColorAsset": "ldr.rgb.gz",
     "hdrSplatSHA256": "ad82d32e9473a8a00cb41a2ef956ca846e9631956db50dd89dff909e24a3d4ec",
     "ldrSplatSHA256": "4d63ffc06d70d1edc2daf197e7017d7341eb8f64624f3383ea3867bb99612b03",
-    "assetBase": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/luckycat/point_clouds/",
+    "assetBase": "https://huggingface.co/CaiYuanhao/HDR-GS/resolve/5b519da1b4f1a7495c349f50b670ddd79fbe1b96/visualizations/real/luckycat/point_clouds/",
     "video": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/luckycat/videos/ldr.mp4",
     "hdrVideo": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/luckycat/videos/hdr.mp4",
     "thumbnail": "static/thumbnails/luckycat.webp",
-    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/luckycat/"
+    "dataset_scene_url": "https://huggingface.co/datasets/CaiYuanhao/HDR-GS/resolve/5b509df14325f889fcd8b44896cab6c216f31d58/visualizations/real/luckycat/",
+    "point_cloud_repository": "CaiYuanhao/HDR-GS",
+    "point_cloud_revision": "5b519da1b4f1a7495c349f50b670ddd79fbe1b96"
   }
 ]
