@@ -94,6 +94,8 @@ conda activate hdr_gs
 export CPATH="${CONDA_PREFIX}/include${CPATH:+:${CPATH}}"
 ```
 
+Copy these commands as written; no variable needs to be filled in manually. `conda activate` sets `CONDA_PREFIX` to the active environment directory. The last command adds that environment's `include/` directory to the compiler's header search path. `${CPATH:+:${CPATH}}` appends a colon and the existing `CPATH` value only when it is nonempty.
+
 Then build the extensions in the activated environment, after PyTorch is installed:
 
 ```shell
@@ -256,8 +258,6 @@ python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn
 New checkpoints include the learned RGB tone mappers and optimizer state. Use `--test_only --start_checkpoint path/to/chkpnt1000.pth` to evaluate a new checkpoint directly. Legacy checkpoints need `--load_path` pointing to the matching saved scene model because they do not contain tone-mapper weights.
 
 Run the regression checks in the activated environment with `python -m unittest discover -s tests -v`. The checkpoint tests require a CUDA GPU and the compiled extensions.
-
-See the [Linux reproduction report](docs/reproduction-2026-11-15.md) for fresh-install validation, pretrained-model checks, and full 30,000-iteration training and saved-model reload results across all 12 scenes.
 
 &nbsp;
 
