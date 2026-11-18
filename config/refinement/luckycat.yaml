@@ -1,0 +1,64 @@
+version: 1
+scene: luckycat
+group: real
+base_config: ../luckycat.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: cb779ac98744227e0d7994eeb21e77e5e3d2788a3dd27a0acf671cb7fcf66ac2
+    tone_mapper.pth: 27026053059690372189ddf643434ce47f8b81490c53899214306ba67de7c533
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_real.py
+  config: config/luckycat.yaml
+  flags:
+  - --eval
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 520
+  seed: 100
+  recipe: perceptual
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 1.0
+    freeze_hdr: false
+- steps: 280
+  seed: 100
+  recipe: real-detail
+  loss:
+    l1: 0.28
+    mse: 1.8
+    dssim: 0.19
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 0.65
+    freeze_hdr: false
+    native_dssim: 0.28
+    mapper_lr_scale: 0.35
+expected_test_metrics:
+  LDR-NE:
+    psnr: 34.619956970214844
+    ssim: 0.9691936917164746
+    lpips: 0.021743278840885442
+    count: 34
+  LDR-OE:
+    psnr: 36.85164133707682
+    ssim: 0.9754809211282169
+    lpips: 0.015100569172086669
+    count: 51
+adopted_weights:
+  point_cloud_sha256: 7b1d96d35106286c7c99011518d91375ded487704302a9553049c68bf871c422
+  tone_mapper_sha256: d547c94219735ab6d3e7be44bfcd3b500da7515b308405a352cc1fa74ddd11c5

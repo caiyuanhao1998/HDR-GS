@@ -1,0 +1,64 @@
+version: 1
+scene: flower
+group: real
+base_config: ../flower.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 9c7fbb5758921943a74d8fd712908a6c995708f6d48b2efb61224a44d4651151
+    tone_mapper.pth: 92cc223eef388a6d53c464976568c264f6a36f212b270ad27d0e056396b99b20
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_real.py
+  config: config/flower.yaml
+  flags:
+  - --eval
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 520
+  seed: 100
+  recipe: perceptual
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 1.0
+    freeze_hdr: false
+- steps: 280
+  seed: 100
+  recipe: real-detail
+  loss:
+    l1: 0.28
+    mse: 1.8
+    dssim: 0.19
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 0.65
+    freeze_hdr: false
+    native_dssim: 0.28
+    mapper_lr_scale: 0.35
+expected_test_metrics:
+  LDR-NE:
+    psnr: 29.49616465849035
+    ssim: 0.9550836524542641
+    lpips: 0.04431978492614101
+    count: 34
+  LDR-OE:
+    psnr: 33.84964688618978
+    ssim: 0.9613230742660224
+    lpips: 0.03431334739149201
+    count: 51
+adopted_weights:
+  point_cloud_sha256: f5a0599516d4043f86288846100ff485043d95beab118bad850cbe513226aaa0
+  tone_mapper_sha256: 744d40a10238f9ac363bf071decd8ccdce4db7e77ca1c4eef1c35f9e8f06b419

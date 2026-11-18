@@ -1,0 +1,57 @@
+version: 1
+scene: dog
+group: synthetic
+base_config: ../dog.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 12983b8eb699ae027d857fbbe8795736d47f4d7680898873fa954ea7c611d48c
+    tone_mapper.pth: f41ad69709a6508ee223a981c15a25b60bf5048421d35c65bfb08e2147bfb37a
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_synthetic.py
+  config: config/dog.yaml
+  flags:
+  - --eval
+  - --syn
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: synthetic
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.85
+    lr_scale: 0.45
+    freeze_hdr: false
+expected_test_metrics:
+  HDR:
+    psnr: 36.71418492934283
+    ssim: 0.9883957680533914
+    lpips: 0.0068055398159605615
+    count: 85
+  LDR-NE:
+    psnr: 39.61598856308881
+    ssim: 0.9876904873286977
+    lpips: 0.008485948488883236
+    count: 34
+  LDR-OE:
+    psnr: 42.3248467538871
+    ssim: 0.990416946364384
+    lpips: 0.0056114137474009215
+    count: 51
+adopted_weights:
+  point_cloud_sha256: 21db72da1d105812cb5dad78605a7f6ddfc6c120c54e1461004bfe722e59dbcf
+  tone_mapper_sha256: dc1c61c1fc8914713767fda015a349e1c43a5a639145ade639223f246d1f8bdd

@@ -1,0 +1,57 @@
+version: 1
+scene: diningroom
+group: synthetic
+base_config: ../diningroom.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 48fe2d6b569d3c28ea2900014025ebcb993327427b2ea4eeee827acc09f87728
+    tone_mapper.pth: f34c52cc2aba95f989ab52230cc6634a2db0b18e9ef70dd50a82cbadd5d7242f
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_synthetic.py
+  config: config/diningroom.yaml
+  flags:
+  - --eval
+  - --syn
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: synthetic
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.85
+    lr_scale: 0.45
+    freeze_hdr: false
+expected_test_metrics:
+  HDR:
+    psnr: 42.15232175939224
+    ssim: 0.9892385496812708
+    lpips: 0.010273992357885136
+    count: 85
+  LDR-NE:
+    psnr: 42.25346699882956
+    ssim: 0.9894876585287207
+    lpips: 0.009761843542732736
+    count: 34
+  LDR-OE:
+    psnr: 44.177845973594515
+    ssim: 0.9901232403867385
+    lpips: 0.008082587039098144
+    count: 51
+adopted_weights:
+  point_cloud_sha256: 57968ea9cbd742b51893abdeb58807624f0f92c1e25b60fa736b6319f0794072
+  tone_mapper_sha256: 6e221ca9b4b949676a470bff0a3d20dfad17f2f8e121aa686aa59153f29d236e

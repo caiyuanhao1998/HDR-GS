@@ -1,0 +1,55 @@
+version: 1
+scene: bathroom
+group: synthetic
+base_config: ../bathroom.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 7ab292e8d932f9cdeb4edf05edd90b0849e0d366a6b540b24f84b353d2b6f947
+    tone_mapper.pth: ba3b3d8c9769e2940731fbc01ea7967f715337af95a80896a6bee974a15f3b30
+  kind: released_checkpoint
+  repo_id: CaiYuanhao/HDR-GS
+  revision: 03d0db0771d095a997ec764fc23eb1f2a2bce806
+  directory: bathroom
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: mapper-only
+  loss:
+    l1: 0.4
+    mse: 2.0
+    dssim: 0.18
+    perceptual: 0.06
+    hdr_weight: 0.0
+    lr_scale: 2.0
+    freeze_hdr: true
+    native_dssim: 0.0
+    mapper_lr_scale: 1.0
+expected_test_metrics:
+  HDR:
+    psnr: 35.855918884277344
+    ssim: 0.9635604725164526
+    lpips: 0.02065524727325229
+    count: 85
+  LDR-NE:
+    psnr: 40.623949499691236
+    ssim: 0.9768606547047111
+    lpips: 0.014410858384936172
+    count: 34
+  LDR-OE:
+    psnr: 41.35560791165221
+    ssim: 0.9752089100725511
+    lpips: 0.01440847780573748
+    count: 51
+adopted_weights:
+  point_cloud_sha256: 7ab292e8d932f9cdeb4edf05edd90b0849e0d366a6b540b24f84b353d2b6f947
+  tone_mapper_sha256: e15d3ed6d6c5a8ab5a457e1f416ed679b84516e76a64b50eb878c460ffc6d589

@@ -1,0 +1,57 @@
+version: 1
+scene: chair
+group: synthetic
+base_config: ../chair.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: e97838dec62ca1cc4f6a7b7ec32abe0b6b95a562adbb1647c4a4e7dfb9001c01
+    tone_mapper.pth: a993d1b9ff338090c528603f16e2a3f0baea70e68a9019e1611be68f109c2cfb
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_synthetic.py
+  config: config/chair.yaml
+  flags:
+  - --eval
+  - --syn
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: synthetic
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.85
+    lr_scale: 0.45
+    freeze_hdr: false
+expected_test_metrics:
+  HDR:
+    psnr: 37.688322628245636
+    ssim: 0.96721832892474
+    lpips: 0.019043889773242614
+    count: 85
+  LDR-NE:
+    psnr: 35.060183693380914
+    ssim: 0.9585347946952371
+    lpips: 0.026674366391756955
+    count: 34
+  LDR-OE:
+    psnr: 35.93130979350969
+    ssim: 0.9602932193700005
+    lpips: 0.025107470003194084
+    count: 51
+adopted_weights:
+  point_cloud_sha256: 9580a7f8b6c76113373cf1b5c6c52be439b237366c56550796830e9907c714d6
+  tone_mapper_sha256: 23fc7878298314e4756dbf52550c0e20fc405291cabcfc9d1b3724f080b633a9

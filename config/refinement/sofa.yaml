@@ -1,0 +1,53 @@
+version: 1
+scene: sofa
+group: synthetic
+base_config: ../sofa.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 8dec4cc3c44e3b594515614f6c3ab7a2147c7902228ea9f54553b631540a5abd
+    tone_mapper.pth: 0e357a45c953c8136615d4e4d0ed2f7661944d622b5bc3310f0e1b7f4f2d1efa
+  kind: released_checkpoint
+  repo_id: CaiYuanhao/HDR-GS
+  revision: 03d0db0771d095a997ec764fc23eb1f2a2bce806
+  directory: sofa_2
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: mapper-only
+  loss:
+    l1: 0.4
+    mse: 2.0
+    dssim: 0.18
+    perceptual: 0.06
+    hdr_weight: 0.0
+    lr_scale: 2.0
+    freeze_hdr: true
+expected_test_metrics:
+  HDR:
+    psnr: 42.31132911233341
+    ssim: 0.9896233432433185
+    lpips: 0.005283340948688633
+    count: 85
+  LDR-NE:
+    psnr: 25.70237917058608
+    ssim: 0.9726734441869399
+    lpips: 0.023922772475463504
+    count: 34
+  LDR-OE:
+    psnr: 41.7579257441502
+    ssim: 0.9899407718695846
+    lpips: 0.005434827023076222
+    count: 51
+adopted_weights:
+  point_cloud_sha256: 8dec4cc3c44e3b594515614f6c3ab7a2147c7902228ea9f54553b631540a5abd
+  tone_mapper_sha256: b5290a2d6dfc5fb2bd587473461a70ca8ffc9ab8c840963ff202ad8ab6fea214

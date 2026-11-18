@@ -174,6 +174,8 @@ This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the foll
 
 &nbsp;
 
+The [refinement guide](docs/refinement.md) shows how to reproduce the selected weights using one training command and a scene YAML.
+
 Precomputed videos, interactive Gaussian previews, camera paths and HDR samples are organized in the dataset’s [visualizations folder](https://huggingface.co/datasets/CaiYuanhao/HDR-GS/tree/main/visualizations).
 
 ## 3. Testing

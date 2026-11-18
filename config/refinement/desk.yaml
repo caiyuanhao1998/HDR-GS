@@ -1,0 +1,57 @@
+version: 1
+scene: desk
+group: synthetic
+base_config: ../desk.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: b1df663b4ace9e96bbf8b07acf3447725822595176bfdadc3cd92ed3615cfc62
+    tone_mapper.pth: ea30e3906ab6e62bcf702e9fd54764a1f17df63b268bf1a8269cd6e946062965
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_synthetic.py
+  config: config/desk.yaml
+  flags:
+  - --eval
+  - --syn
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: synthetic
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.85
+    lr_scale: 0.45
+    freeze_hdr: false
+expected_test_metrics:
+  HDR:
+    psnr: 43.94515519983628
+    ssim: 0.9840170600835014
+    lpips: 0.011270600781940362
+    count: 85
+  LDR-NE:
+    psnr: 38.77084103752585
+    ssim: 0.9792573276688071
+    lpips: 0.01504450265372939
+    count: 34
+  LDR-OE:
+    psnr: 40.970508425843484
+    ssim: 0.980375767922869
+    lpips: 0.012576239137892044
+    count: 51
+adopted_weights:
+  point_cloud_sha256: b315b13616e5eedfad21f37d756626306ea8841a66cee0dd209a7f3b757e44e6
+  tone_mapper_sha256: f7983c90241f03761006a177cc5fb4f9da35e9a46ccf4af94f277995555d7a56

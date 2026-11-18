@@ -1,0 +1,64 @@
+version: 1
+scene: computer
+group: real
+base_config: ../computer.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 0131e6dc2755d4139016646ab13c3046040e9e6abfdf8f1f41b4ab3804deb407
+    tone_mapper.pth: 7d6d6e5159804cf93e9715e7567ed73d06070c0ca68ddd93a74fdace850ef09f
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_real.py
+  config: config/computer.yaml
+  flags:
+  - --eval
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 520
+  seed: 100
+  recipe: perceptual
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 1.0
+    freeze_hdr: false
+- steps: 280
+  seed: 100
+  recipe: real-detail
+  loss:
+    l1: 0.28
+    mse: 1.8
+    dssim: 0.19
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 0.65
+    freeze_hdr: false
+    native_dssim: 0.28
+    mapper_lr_scale: 0.35
+expected_test_metrics:
+  LDR-NE:
+    psnr: 32.311819188735065
+    ssim: 0.9659197540844188
+    lpips: 0.026900365866501543
+    count: 34
+  LDR-OE:
+    psnr: 36.04571720198089
+    ssim: 0.9675730677211986
+    lpips: 0.023936002825697262
+    count: 51
+adopted_weights:
+  point_cloud_sha256: c0e14c0f5b94235d9f54b6494b65ebee059bf237531c269c0575c45f951c4d91
+  tone_mapper_sha256: 8139894a2dd5aef1433a333a632c81ef6ae0d20feb7b5993a579e99bfcf9d0de

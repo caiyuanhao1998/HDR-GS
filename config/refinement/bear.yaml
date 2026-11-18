@@ -1,0 +1,57 @@
+version: 1
+scene: bear
+group: synthetic
+base_config: ../bear.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: c9b974c5d629480d4bb52e3732d7daa7308ccbb82ac249dd423bf76c70356e33
+    tone_mapper.pth: 33f6099a3f5abfd06d325f3ca886c12620efbc3ad258f9beb3b5083a95a844c7
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_synthetic.py
+  config: config/bear.yaml
+  flags:
+  - --eval
+  - --syn
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: synthetic
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.85
+    lr_scale: 0.45
+    freeze_hdr: false
+expected_test_metrics:
+  HDR:
+    psnr: 43.8834509008071
+    ssim: 0.990711345392115
+    lpips: 0.005630112924229573
+    count: 85
+  LDR-NE:
+    psnr: 42.78784146028406
+    ssim: 0.9899239890715655
+    lpips: 0.005469441674101879
+    count: 34
+  LDR-OE:
+    psnr: 43.649646684235215
+    ssim: 0.9904595753725838
+    lpips: 0.005126729831282122
+    count: 51
+adopted_weights:
+  point_cloud_sha256: d11538bc65254215523b5f343b0d73b08c837412a8faad289093893a8189e1a2
+  tone_mapper_sha256: 10045bc7de6d8b14aba5aa32f12621e9adec203f17b03ea83db9240bc7ca2ac1

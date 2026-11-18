@@ -1,0 +1,64 @@
+version: 1
+scene: box
+group: real
+base_config: ../box.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 6db9839abdf378fc89ae2b9f09529c7cf16be9f46337e33bae7e4c20056f0496
+    tone_mapper.pth: b1dce889c4482d2c550c9f5153c0594a5c3f09b78fc761195f7921001c05c773
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_real.py
+  config: config/box.yaml
+  flags:
+  - --eval
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 520
+  seed: 100
+  recipe: perceptual
+  loss:
+    l1: 0.33
+    mse: 1.5
+    dssim: 0.18
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 1.0
+    freeze_hdr: false
+- steps: 280
+  seed: 100
+  recipe: real-detail
+  loss:
+    l1: 0.28
+    mse: 1.8
+    dssim: 0.19
+    perceptual: 0.14
+    hdr_weight: 0.6
+    lr_scale: 0.65
+    freeze_hdr: false
+    native_dssim: 0.28
+    mapper_lr_scale: 0.35
+expected_test_metrics:
+  LDR-NE:
+    psnr: 30.34324073791504
+    ssim: 0.9699451046831468
+    lpips: 0.026275382870260405
+    count: 34
+  LDR-OE:
+    psnr: 36.7227430156633
+    ssim: 0.9778380090115117
+    lpips: 0.01390513892778579
+    count: 51
+adopted_weights:
+  point_cloud_sha256: 7a276f9e7896c916d37516ff8643db8e7a8ee4f72f1d8c23ade09608043937e0
+  tone_mapper_sha256: 7b5d188dd44be0f392fa81ee945889677e903bc0d404a25469f0a8aa54d30612
