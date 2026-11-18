@@ -1,0 +1,50 @@
+{
+  "name": "Bathroom project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "7ab292e8d932f9cdeb4edf05edd90b0849e0d366a6b540b24f84b353d2b6f947",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9980148762666214,
+      0.016641393826813983,
+      -0.06074019066500747,
+      1.2004272979162023
+    ],
+    [
+      -0.01633850721950716,
+      0.999851500988323,
+      0.0054798862429615465,
+      -0.12714954061228317
+    ],
+    [
+      0.06082236375181991,
+      -0.004476603947029961,
+      0.9981385675770386,
+      0.04250109207779328
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 641.4003516799271,
+    "fy": 641.9994212279187
+  },
+  "lateral_radius_x": 1.3502842772222805,
+  "lateral_radius_y": 0.7755026744618099,
+  "forward_travel": 6.481364530666947,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.525,
+  "base_exposure": 2.0
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "bathroom",
+    "label": "Bathroom",
+    "group": "synthetic",
+    "model_directory": "bathroom",
+    "trajectory": "bathroom-project-page.json"
+  },
+  {
+    "id": "bear",
+    "label": "Bear",
+    "group": "synthetic",
+    "model_directory": "bear",
+    "trajectory": "bear-project-page.json"
+  },
+  {
+    "id": "chair",
+    "label": "Chair",
+    "group": "synthetic",
+    "model_directory": "chair",
+    "trajectory": "chair-project-page.json"
+  },
+  {
+    "id": "desk",
+    "label": "Desk",
+    "group": "synthetic",
+    "model_directory": "desk",
+    "trajectory": "desk-project-page.json"
+  },
+  {
+    "id": "diningroom",
+    "label": "Dining Room",
+    "group": "synthetic",
+    "model_directory": "diningroom",
+    "trajectory": "diningroom-project-page.json"
+  },
+  {
+    "id": "dog",
+    "label": "Dog",
+    "group": "synthetic",
+    "model_directory": "dog",
+    "trajectory": "dog-project-page.json"
+  },
+  {
+    "id": "sofa",
+    "label": "Sofa",
+    "group": "synthetic",
+    "model_directory": "sofa_2",
+    "trajectory": "sofa-project-page.json"
+  },
+  {
+    "id": "sponza",
+    "label": "Sponza",
+    "group": "synthetic",
+    "model_directory": "sponza",
+    "trajectory": "sponza-project-page.json"
+  },
+  {
+    "id": "flower",
+    "label": "Flower",
+    "group": "real",
+    "model_directory": "flower",
+    "trajectory": "flower-project-page.json"
+  },
+  {
+    "id": "computer",
+    "label": "Computer",
+    "group": "real",
+    "model_directory": "computer",
+    "trajectory": "computer-project-page.json"
+  },
+  {
+    "id": "box",
+    "label": "Box",
+    "group": "real",
+    "model_directory": "box",
+    "trajectory": "box-project-page.json"
+  },
+  {
+    "id": "luckycat",
+    "label": "Lucky Cat",
+    "group": "real",
+    "model_directory": "luckycat",
+    "trajectory": "luckycat-project-page.json"
+  }
+]

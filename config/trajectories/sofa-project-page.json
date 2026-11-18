@@ -1,0 +1,50 @@
+{
+  "name": "Sofa project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "8dec4cc3c44e3b594515614f6c3ab7a2147c7902228ea9f54553b631540a5abd",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9998607381571053,
+      0.0008268039998695847,
+      0.016667953895856572,
+      1.046766321574001
+    ],
+    [
+      -0.00023261973580784628,
+      0.9993654232711471,
+      -0.035618768341133034,
+      -0.1255506314281166
+    ],
+    [
+      -0.016686826540331542,
+      0.035609930710780495,
+      0.9992264421315051,
+      -0.04031022292490029
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 725.0426081420944,
+    "fy": 725.8975912781352
+  },
+  "lateral_radius_x": 1.1739436178152827,
+  "lateral_radius_y": 0.8971534368332952,
+  "forward_travel": 5.634929365513357,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.6,
+  "base_exposure": 0.4472135954999579
+}

@@ -1,0 +1,50 @@
+{
+  "name": "Sponza project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "4ea1532ff68d5abd1a47b9f399ba81d6f333d4a51d30d9b9fd9e13d343ee96ad",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9998933474757721,
+      0.014174351540469046,
+      -0.003518725920269443,
+      1.1894702408903268
+    ],
+    [
+      -0.014025100932381162,
+      0.9991279142012572,
+      0.039328203717965346,
+      -0.12214294976099443
+    ],
+    [
+      0.004073109074318332,
+      -0.03927465877958032,
+      0.9992201513981871,
+      -0.011209629147765056
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 1800.3940138988098,
+    "fy": 1652.4806534304025
+  },
+  "lateral_radius_x": 1.3335600277920312,
+  "lateral_radius_y": 0.7756940045017229,
+  "forward_travel": 6.40108813340175,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.55,
+  "base_exposure": 2.449489742783178
+}

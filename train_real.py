@@ -27,6 +27,7 @@ from arguments import ModelParams, PipelineParams, OptimizationParams
 import datetime
 from pdb import set_trace as stx
 from utils.config_utils import parse_training_args
+from utils.hdr_visualization import save_preview
 import time
 import imageio.v2 as imageio
 
@@ -295,7 +296,9 @@ def testing_report(exp_logger, iteration, scene : Scene, renderFunc, renderArgs,
                     save_image(min_max_norm(image), os.path.join(align_debug_path_ldr_ne, 'render_{}_ldr.png'.format(viewpoint.image_name)))
                 save_image(min_max_norm(image_hdr), os.path.join(align_debug_path_hdr, 'render_{}_hdr.png'.format(viewpoint.image_name)))
 
-                imageio.imwrite(os.path.join(align_debug_path_hdr, 'render_{}_hdr.exr'.format(viewpoint.image_name)), image_hdr_raw.permute(1, 2, 0).cpu().numpy())
+                hdr_array = image_hdr_raw.permute(1, 2, 0).cpu().numpy()
+                imageio.imwrite(os.path.join(align_debug_path_hdr, 'render_{}_hdr.exr'.format(viewpoint.image_name)), hdr_array)
+                save_preview(os.path.join(align_debug_path_hdr, 'render_{}_hdr_preview.png'.format(viewpoint.image_name)), hdr_array)
             
             psnr_test_oe /= num_oe
             ssim_test_oe /= num_oe

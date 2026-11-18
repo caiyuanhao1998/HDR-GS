@@ -1,0 +1,50 @@
+{
+  "name": "Flower project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "446137ba81084929518c2590c4a2d0e5c8787101a6015547bb5f59cb28cd5017",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9999146701234986,
+      -0.009276162413540812,
+      0.00919811299628914,
+      0.3381408843192547
+    ],
+    [
+      0.009733645222653574,
+      0.9986508672762079,
+      -0.05100687639090788,
+      -0.10534404868676642
+    ],
+    [
+      -0.008712555451439247,
+      0.05109205514906848,
+      0.9986559433949964,
+      -0.0349040399683196
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 398,
+    "fx": 1359.6761982107453,
+    "fy": 1358.3632328714566
+  },
+  "lateral_radius_x": 0.7795214828435846,
+  "lateral_radius_y": 0.37402192565169384,
+  "forward_travel": 3.1180859313743388,
+  "viewport_crop": 1.22,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.55,
+  "base_exposure": 0.08598023028580466
+}

@@ -9,3 +9,6 @@ screenshots
 # Downloaded scene data and pretrained model repositories
 data_hdr/
 pretrained_weights/
+# Local Gradio artifacts and UI environment
+demo/outputs/
+demo/.venv/

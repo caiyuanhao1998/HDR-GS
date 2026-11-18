@@ -1,0 +1,50 @@
+{
+  "name": "Lucky Cat project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "54976c6654c07d1675ddc4d95056a9edbad591c83baf3f5732cc772fc7d80af2",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9995465652402286,
+      0.02981946631861478,
+      0.004178916717846629,
+      0.4429325331761337
+    ],
+    [
+      -0.029429502334261195,
+      0.9968313471517446,
+      -0.07389972752314787,
+      -0.08842041016968251
+    ],
+    [
+      -0.006369325617317321,
+      0.07374323537864867,
+      0.9972569212229463,
+      -0.03017066618989039
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 398,
+    "fx": 1401.2917173941948,
+    "fy": 1396.4882050012573
+  },
+  "lateral_radius_x": 0.6051096428193623,
+  "lateral_radius_y": 0.32554803236624263,
+  "forward_travel": 2.4204385712774497,
+  "viewport_crop": 1.1,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.6,
+  "base_exposure": 0.2
+}

@@ -106,6 +106,16 @@ python -c "import torch, diff_gaussian_rasterization, simple_knn._C; print(torch
 For Windows, use a CUDA-compatible Visual Studio build environment and run `set DISTUTILS_USE_SDK=1` in Command Prompt before the extension installation command. The Linux compiler command above is not needed on Windows.
 
 
+Install the Gradio UI in its Python 3.11 environment:
+
+```shell
+conda create -n hdr_gs_demo python=3.11 pip -y
+conda run -n hdr_gs_demo python -m pip install -r demo/requirements.txt
+```
+
+Keep `hdr_gs` active for Section 3. The Gradio UI runs in `hdr_gs_demo` and calls the CUDA renderer in `hdr_gs`; `CONDA_PREFIX` is filled automatically by Conda. Camera formats and render options are documented in the [rendering guide](docs/rendering.md).
+
+
 &nbsp;
 
 ## 2. Prepare Dataset
@@ -164,6 +174,8 @@ This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the foll
 
 &nbsp;
 
+Precomputed videos, interactive Gaussian previews, camera paths and HDR samples are organized in the dataset’s [visualizations folder](https://huggingface.co/datasets/CaiYuanhao/HDR-GS/tree/main/visualizations).
+
 ## 3. Testing
 We write the code for directly loading the model to test and render spiral video. Please download our pre-trained weights `bathroom` from [Google Drive](https://drive.google.com/drive/folders/139XpnbMmDkY6eyAcqqqqersYPj8oLo3v?usp=sharing) or [Baidu Disk](https://pan.baidu.com/s/1VVUiC794FWJddZz1ZEio_A?pwd=cyh2) (code: `cyh2`) and then put it into the folder `pretrained_weights`.
 
@@ -174,6 +186,27 @@ git clone https://huggingface.co/CaiYuanhao/HDR-GS pretrained_weights
 ```
 
 This downloads both `bathroom/` and `sofa_2/` into `pretrained_weights/`. The bathroom model files are `pretrained_weights/bathroom/point_cloud.ply` and `pretrained_weights/bathroom/tone_mapper.pth`.
+
+### LDR rendering
+
+```shell
+python render_ldr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom --gpu_id 0
+python render_ldr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom_fixed --gpu_id 0 --brightness 0.35
+```
+
+### HDR rendering
+
+```shell
+python render_hdr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom --gpu_id 0
+```
+
+### Gradio demo
+
+```shell
+conda run --no-capture-output -n hdr_gs_demo python demo/app.py --renderer-python "$CONDA_PREFIX/bin/python" --models-root pretrained_weights --gpu-id 0 --port 7876
+```
+
+### Evaluation
 
 With the bathroom dataset downloaded above, test and render the model using:
 
@@ -201,6 +234,9 @@ Besides, if you train a model with config: ```bathroom.yaml```, you will get a p
 ```
 Then the ```--load_path``` should be ``` "output/mlp/bathroom/exp-time/point_cloud/interation_x"```
 
+Testing also saves `render_*_hdr_preview.png` beside the original HDR EXR files, so ordinary image viewers can display the results. Training losses and evaluation metrics retain the original pipeline.
+
+References: [OpenCV HDR imaging](https://docs.opencv.org/4.x/d6/df5/group__photo__hdr.html), [Reinhard et al., Photographic Tone Reproduction for Digital Images](https://www-old.cs.utah.edu/docs/techreports/2002/pdf/UUCS-02-001.pdf).
 
 
 ## 4. Training

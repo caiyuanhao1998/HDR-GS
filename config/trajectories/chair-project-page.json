@@ -1,0 +1,50 @@
+{
+  "name": "Chair project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "8c1d20a189732f467cc953fb2525e0ec7181b513a78475fac4e67d027c98bb5d",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9999037442108376,
+      -0.006425802391904773,
+      -0.012296803518313878,
+      1.2304755430307657
+    ],
+    [
+      0.006433054587552581,
+      0.9999791562727951,
+      0.0005502986661377327,
+      -0.09441470780094438
+    ],
+    [
+      0.012293011096610719,
+      -0.0006293517049910705,
+      0.9999242400275183,
+      0.002675121032305553
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 1037.843814358146,
+    "fy": 1050.3698942638548
+  },
+  "lateral_radius_x": 1.3772337010889624,
+  "lateral_radius_y": 0.7197880980565432,
+  "forward_travel": 6.610721765227019,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.475,
+  "base_exposure": 0.08598023028580466
+}

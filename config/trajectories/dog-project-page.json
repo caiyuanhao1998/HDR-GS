@@ -1,0 +1,50 @@
+{
+  "name": "Dog project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "a2eeb8640fc873ba42dcee26ad068d2948b0b4bde5d8444f5dfe26cac45fba66",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9994554599019264,
+      0.00632766542827414,
+      -0.03238432217070974,
+      1.2254092524833884
+    ],
+    [
+      -0.007481646051696567,
+      0.9993367691547234,
+      -0.03563771580441301,
+      -0.11035557656961578
+    ],
+    [
+      0.03213734034710451,
+      0.035860597675259114,
+      0.9988399315655074,
+      0.012848647645290999
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 869.9988208984613,
+    "fy": 868.2376183677075
+  },
+  "lateral_radius_x": 1.3731096737033126,
+  "lateral_radius_y": 0.7306942724007239,
+  "forward_travel": 6.590926433775901,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.55,
+  "base_exposure": 0.08598023028580466
+}

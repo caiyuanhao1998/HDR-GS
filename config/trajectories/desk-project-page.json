@@ -1,0 +1,50 @@
+{
+  "name": "Desk project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "f69a78539540381803c5e6903ea7516e5b7acfc4d5bbf0bf77caab698b1886e4",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9987841344710943,
+      -0.042818315220391895,
+      0.024430403404657373,
+      1.2017656612812255
+    ],
+    [
+      0.043535092911216454,
+      0.9986132029508543,
+      -0.029603489278251342,
+      -0.05750232325551433
+    ],
+    [
+      -0.0231289518577667,
+      0.03063107529818284,
+      0.9992631229120978,
+      -0.046569241560173676
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 962.0168802935061,
+    "fy": 966.5182342150388
+  },
+  "lateral_radius_x": 1.3300563997893557,
+  "lateral_radius_y": 0.8320734369738603,
+  "forward_travel": 6.384270718988908,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.425,
+  "base_exposure": 2.449489742783178
+}

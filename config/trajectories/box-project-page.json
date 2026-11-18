@@ -1,0 +1,50 @@
+{
+  "name": "Box project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "9b7a91ea8b7feee70ba7e5240980005efbcd0cc0c451ebbc107b67b95dd79104",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9717375258145096,
+      -0.15122325275671414,
+      0.18126695437827156,
+      0.22325155044296274
+    ],
+    [
+      0.14699238502855447,
+      0.9884591091490722,
+      0.03663097437743029,
+      -0.01045009451520544
+    ],
+    [
+      -0.1847144273399147,
+      -0.008950830458774496,
+      0.9827514756878188,
+      -0.09763328297136734
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 398,
+    "fx": 1339.434888117094,
+    "fy": 1341.063655705396
+  },
+  "lateral_radius_x": 0.42689697427094464,
+  "lateral_radius_y": 0.19886396965180514,
+  "forward_travel": 1.7075878970837786,
+  "viewport_crop": 1.2,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.4,
+  "base_exposure": 0.08598023028580466
+}

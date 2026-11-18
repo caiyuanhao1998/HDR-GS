@@ -1,0 +1,50 @@
+{
+  "name": "Dining Room project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "1fe1bf84303ea4076f62d47dfb8090ec276d4c916dc8b894e73c97f4179058b6",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.999519717737065,
+      0.010626735269028334,
+      0.02911024480040917,
+      1.2574866297870286
+    ],
+    [
+      -0.01025611923218739,
+      0.9998648185443733,
+      -0.012851328939948423,
+      -0.10994458207494424
+    ],
+    [
+      -0.02924287730564343,
+      0.012546598533052266,
+      0.9994935902706618,
+      -0.051078876693176234
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 683.4654311182028,
+    "fy": 727.3961299483179
+  },
+  "lateral_radius_x": 1.40841261023168,
+  "lateral_radius_y": 0.6885384082764351,
+  "forward_travel": 6.760380529112065,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.6,
+  "base_exposure": 0.08598023028580466
+}

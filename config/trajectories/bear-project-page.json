@@ -1,0 +1,50 @@
+{
+  "name": "Bear project-page spiral",
+  "source": "https://caiyuanhao1998.github.io/project/HDR-GS/",
+  "source_video_revision": "spiral-smooth-turns-60fps-v4",
+  "model_sha256": "d618525b3665634b711a0e0ebe448e4a306cd29554c635e669c052a589456869",
+  "duration_seconds": 16.0,
+  "fps": 60,
+  "turns_per_leg": 2,
+  "turn_blend_seconds": 0.6,
+  "camera_to_world_start": [
+    [
+      0.9987393071175892,
+      -0.02798717816208943,
+      0.04167150437411077,
+      1.3575736084318868
+    ],
+    [
+      0.029524413683468587,
+      0.9988885257966481,
+      -0.03674264590970845,
+      -0.038416009466715785
+    ],
+    [
+      -0.0405968645947625,
+      0.03792665145148286,
+      0.998455539167745,
+      -0.08679245234465385
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_intrinsics": {
+    "width": 600,
+    "height": 600,
+    "fx": 859.5836932956672,
+    "fy": 857.610385644129
+  },
+  "lateral_radius_x": 1.5127620705938702,
+  "lateral_radius_y": 0.6027820272682327,
+  "forward_travel": 7.261257938850578,
+  "viewport_crop": 1.0,
+  "motion": "spiral",
+  "brightness_minimum": 0.065,
+  "brightness_maximum": 0.575,
+  "base_exposure": 2.449489742783178
+}
