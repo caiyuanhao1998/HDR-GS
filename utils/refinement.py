@@ -1,18 +1,20 @@
-"""Run the HDR-GS refinement stages described by a scene YAML."""
-import argparse
+"""Run the refinement stages of a scene training configuration."""
 from collections import defaultdict
+from copy import copy
 from dataclasses import dataclass
 import hashlib
 import json
 import logging
 import math
-import os
 from pathlib import Path
 import random
-import sys
 import time
+from urllib.parse import quote
 
-ROOT = Path(__file__).resolve().parent
+import torch
+import yaml
+
+CHECKPOINT_FILES = ('point_cloud.ply', 'tone_mapper.pth')
 SCENES = ('bathroom', 'bear', 'chair', 'desk', 'diningroom', 'dog', 'sofa', 'sponza',
           'box', 'computer', 'flower', 'luckycat')
 SYNTHETIC = SCENES[:8]
@@ -45,24 +47,13 @@ def write_json(path, data):
     temp.replace(path)
 
 
-def load_scene(name, source, output, base_config):
-    from arguments import ModelParams, PipelineParams, OptimizationParams
-    from scene import Scene, GaussianModel
-    import yaml
-    parser = argparse.ArgumentParser()
-    models = ModelParams(parser)
-    pipelines = PipelineParams(parser)
-    optimizer = OptimizationParams(parser)
-    args = parser.parse_args([])
-    config = yaml.safe_load(base_config.read_text())
-    vars(args).update(config)
-    args.eval = True
-    args.syn = name in SYNTHETIC
-    args.source_path = str(ROOT / args.source_path)
-    args.model_path = str(output)
-    args.data_device = 'cpu'
-    args.render_video = False
-    dataset = models.extract(args)
+def load_scene(source, output, dataset):
+    from scene import GaussianModel, Scene
+
+    dataset = copy(dataset)
+    dataset.model_path = str(output)
+    dataset.data_device = 'cpu'
+    dataset.render_video = False
     logger = logging.getLogger('refinement')
     model = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, model, logger, load_path=str(source), shuffle=False)
@@ -73,7 +64,7 @@ def load_scene(name, source, output, base_config):
         assert len(dataset.train_exps) == 3 and len(dataset.test_exps) == 2
     background = torch.tensor(
         [1., 1., 1.] if dataset.white_background else [0., 0., 0.], device='cuda')
-    return scene, model, dataset, pipelines.extract(args), optimizer.extract(args), background
+    return scene, model, dataset, background
 
 
 def hdr_transform(radiance):
@@ -87,7 +78,6 @@ def prepare_model(model, source):
     model.load_tonemapper(str(source / 'tone_mapper.pth'))
     for channel in 'rgb':
         getattr(model, 'tone_mapper_' + channel).cuda()
-
 
 
 def benchmark(cameras, model, dataset, pipe, background, final=False):
@@ -202,12 +192,13 @@ def save_benchmark(output, scene_name, source, scene, model, dataset, pipe, back
 
 
 def read_plan(config):
-    import yaml
     plan = yaml.safe_load(config.read_text())
-    if plan['version'] != 1 or plan['scene'] not in SCENES:
+    if not isinstance(plan, dict) or plan.get('version') != 1 or plan.get('scene') not in SCENES:
         raise ValueError('Unknown version or scene in the refinement YAML')
     if (plan['scene'] in SYNTHETIC) != (plan['group'] == 'synthetic'):
         raise ValueError('The scene group does not match the scene')
+    if plan['initialization']['kind'] not in ('original_training', 'released_checkpoint'):
+        raise ValueError('Unknown refinement initialization type')
     if not plan['stages'] or any(stage['steps'] <= 0 for stage in plan['stages']):
         raise ValueError('At least one refinement stage with positive steps is required')
     for stage in plan['stages']:
@@ -219,69 +210,112 @@ def read_plan(config):
     return plan
 
 
-def run_plan(args, plan):
-    weights = args.load_path.resolve()
-    output = args.output.resolve()
-    output.mkdir(parents=True, exist_ok=True)
-    start_index = args.start_stage - 1
-    if not 0 <= start_index < len(plan['stages']):
-        raise ValueError('The start stage is outside the configured stages')
-    base_config = (args.config.resolve().parent / plan['base_config']).resolve()
-    scene, model, dataset, pipe, opt, background = load_scene(
-        plan['scene'], weights, output, base_config)
-    cameras = scene.getTrainCameras()
-    starting_files = {name: sha256(weights / name) for name in ['point_cloud.ply','tone_mapper.pth']}
-    if start_index == 0 and starting_files != plan['initialization']['checkpoint_files']:
+def download_initial_checkpoint(initialization):
+    repo = initialization['repo_id']
+    revision = initialization['revision']
+    directory = initialization['directory']
+    cache = Path(torch.hub.get_dir()) / 'hdr-gs' / repo / revision / directory
+    cache.mkdir(parents=True, exist_ok=True)
+    for filename in CHECKPOINT_FILES:
+        file = cache / filename
+        expected_hash = initialization['checkpoint_files'][filename]
+        if file.is_file() and sha256(file) == expected_hash:
+            continue
+        url = f'https://huggingface.co/{quote(repo)}/resolve/{quote(revision)}/{quote(directory)}/{filename}'
+        print(f'Downloading the original {directory}/{filename} from {repo}@{revision}', flush=True)
+        torch.hub.download_url_to_file(url, str(file), hash_prefix=expected_hash)
+    return cache
+
+
+def run_plan(plan, weights, output, dataset, opt, pipe, evaluate, start_stage):
+    weights = weights.resolve()
+    output = output.resolve()
+    missing = [filename for filename in CHECKPOINT_FILES if not (weights / filename).is_file()]
+    if missing:
+        raise FileNotFoundError(f'Missing {", ".join(missing)} in {weights}')
+    starting_files = {name: sha256(weights / name) for name in CHECKPOINT_FILES}
+    if start_stage == 1 and starting_files != plan['initialization']['checkpoint_files']:
         print('Initialization differs from the reference hashes. Results may differ.', flush=True)
-    for index, stage in enumerate(plan['stages'][start_index:], start=start_index+1):
+
+    output.mkdir(parents=True, exist_ok=True)
+    scene, model, dataset, background = load_scene(weights, output, dataset)
+    cameras = scene.getTrainCameras()
+    for index, stage in enumerate(plan['stages'][start_stage - 1:], start=start_stage):
         torch.manual_seed(stage['seed'])
-        if index > start_index + 1:
+        if index > start_stage:
             model.optimizer = None
             prepare_model(model, weights)
         recipe = Recipe(**stage['loss'])
-        print('Stage {} / {}: {}'.format(index,len(plan['stages']),stage['recipe']),flush=True)
-        refine(model,scene,opt,pipe,background,cameras,stage['steps'],recipe,dataset.syn,
-               stage['seed'],plan['learning_rates'])
-        weights = output / 'stage_{:02d}'.format(index) / 'weights'
+        print(f"Stage {index} / {len(plan['stages'])}: {stage['recipe']}", flush=True)
+        refine(model, scene, opt, pipe, background, cameras, stage['steps'], recipe, dataset.syn,
+               stage['seed'], plan['learning_rates'])
+        weights = output / f'stage_{index:02d}' / 'weights'
         weights.mkdir(parents=True, exist_ok=True)
         with torch.no_grad():
-            model.save_ply(str(weights/'point_cloud.ply'))
-            model.save_tone_mapper(str(weights/'tone_mapper.pth'))
-    write_json(output/'training-plan.json',plan)
-    write_json(output/'run.json',dict(init_files=starting_files, start_stage=args.start_stage,
+            model.save_ply(str(weights / 'point_cloud.ply'))
+            model.save_tone_mapper(str(weights / 'tone_mapper.pth'))
+    write_json(output / 'training-plan.json', plan)
+    write_json(output / 'run.json', dict(init_files=starting_files, start_stage=start_stage,
                weights=str(weights), torch=torch.__version__, gpu=torch.cuda.get_device_name(0)))
-    if args.evaluate:
+    if evaluate:
         model.optimizer = None
-        prepare_model(model,weights)
+        prepare_model(model, weights)
         torch.cuda.empty_cache()
-        save_benchmark(output,plan['scene'],weights,scene,model,dataset,pipe,background)
+        save_benchmark(output, plan['scene'], weights, scene, model, dataset, pipe, background)
+    print(f'Refined checkpoint saved to {weights}', flush=True)
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--config', type=Path, required=True)
-    parser.add_argument('--load_path', type=Path, help='Directory with the matching PLY and tone mapper')
-    parser.add_argument('--output', type=Path)
-    parser.add_argument('--gpu_id', type=int, default=0)
-    parser.add_argument('--start_stage', type=int, default=1,
-                        help='Resume a later stage using the previous stage checkpoint as --load_path')
-    parser.add_argument('--evaluate', action='store_true')
-    parser.add_argument('--validate_config', action='store_true')
-    args = parser.parse_args()
-    plan = read_plan(args.config)
-    if args.validate_config:
-        print('{}: {} training stage(s)'.format(plan['scene'],len(plan['stages'])))
-        sys.exit(0)
-    if args.load_path is None or args.output is None:
-        parser.error('provide --load_path and --output to run training')
-    args.config = args.config.resolve()
-    args.load_path = args.load_path.resolve()
-    args.output = args.output.resolve()
-    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
-    os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '1'
-    os.chdir(str(ROOT))
-    import torch
+def run_training(args, dataset, opt, pipe, training, prepare_output, group):
+    """Run base training and any refinement requested by the scene YAML."""
+    base_args = (args.test_iterations, args.save_iterations, args.checkpoint_iterations,
+                 args.start_checkpoint, args.debug_from)
+    settings = getattr(args, 'refinement', None)
+    if args.test_only or settings is None or settings is False:
+        training(dataset, opt, pipe, *base_args)
+        return
+    if not isinstance(settings, dict) or type(settings.get('enabled', True)) is not bool:
+        raise ValueError('refinement must be a mapping with a boolean enabled field')
+    if not settings.get('enabled', True):
+        training(dataset, opt, pipe, *base_args)
+        return
+
+    recipe_path = settings.get('plan')
+    if not isinstance(recipe_path, str) or not recipe_path:
+        raise ValueError('refinement.plan must point to a recipe YAML')
+    plan_path = Path(args.config).resolve().parent / recipe_path
+    plan = read_plan(plan_path)
+    if plan['scene'] != dataset.scene or plan['group'] != group:
+        raise ValueError(f'{plan_path} must match scene {dataset.scene} and group {group}')
+
+    # The released recipes use the original train/test split and scene type.
+    dataset.eval = True
+    dataset.syn = group == 'synthetic'
+    start_stage = settings.get('start_stage', 1)
+    initial_path = settings.get('load_path')
+    base_requested = args.load_path or args.start_checkpoint or args.checkpoint_iterations
+    if base_requested:
+        initial_path = None
+        start_stage = 1
+    if type(start_stage) is not int or not 1 <= start_stage <= len(plan['stages']):
+        raise ValueError('refinement.start_stage must select a stage in the recipe')
+    if start_stage > 1 and not initial_path:
+        raise ValueError('refinement.load_path must point to the previous stage checkpoint')
+
+    initialization = plan['initialization']
+    if initial_path:
+        weights = Path(initial_path).expanduser()
+    elif initialization['kind'] == 'released_checkpoint' and not base_requested:
+        weights = download_initial_checkpoint(initialization)
+    else:
+        weights = None
+
+    if weights is None:
+        training(dataset, opt, copy(pipe), *base_args)
+        weights = Path(dataset.model_path) / 'point_cloud' / f'iteration_{opt.iterations}'
+    else:
+        prepare_output(dataset)
+
     torch.set_num_threads(2)
-    torch.set_num_interop_threads(1)
-    run_plan(args, plan)
+    torch.cuda.empty_cache()
+    output = Path(dataset.model_path) / 'refinement'
+    run_plan(plan, weights, output, dataset, opt, pipe, args.eval, start_stage)

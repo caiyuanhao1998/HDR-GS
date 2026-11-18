@@ -2,6 +2,10 @@ scene: sofa
 source_path: data_hdr/synthetic/sofa
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/sofa.yaml
+
 # llff parameters
 dataset_type: syn_llff
 factor: 4

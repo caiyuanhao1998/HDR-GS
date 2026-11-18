@@ -28,6 +28,7 @@ import datetime
 from pdb import set_trace as stx
 from utils.config_utils import parse_training_args
 from utils.hdr_visualization import save_preview
+from utils.refinement import run_training
 import time
 import imageio.v2 as imageio
 
@@ -69,6 +70,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             video_inference(0, scene, render, (pipe, background))
             testing_report(exp_logger, 0, scene, render, (pipe, background), log_path, train_exps, test_exps)
             exit()
+
+    if checkpoint and first_iter == opt.iterations:
+        scene.save(first_iter)
+        return
+
     viewpoint_stack = None
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
@@ -382,7 +388,8 @@ if __name__ == "__main__":
     # Start GUI server, configure and run training
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
 
-    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
+    run_training(args, lp.extract(args), op.extract(args), pp.extract(args),
+                 training, prepare_output_and_logger, "synthetic")
 
     # All done
     print("\nTraining complete.")

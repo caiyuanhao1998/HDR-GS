@@ -2,6 +2,10 @@ scene: bear
 source_path: data_hdr/synthetic/bear
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/bear.yaml
+
 # llff parameters
 dataset_type: syn_llff
 factor: 4

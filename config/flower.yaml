@@ -2,6 +2,10 @@ scene: flower
 source_path: data_hdr/real/flower
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/flower.yaml
+
 # llff parameters
 dataset_type: real_llff
 factor: 4

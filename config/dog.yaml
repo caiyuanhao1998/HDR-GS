@@ -2,6 +2,10 @@ scene: dog
 source_path: data_hdr/synthetic/dog
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/dog.yaml
+
 # llff parameters
 dataset_type: syn_llff
 factor: 4

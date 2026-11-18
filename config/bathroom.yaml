@@ -2,6 +2,10 @@ scene: bathroom
 source_path: data_hdr/synthetic/bathroom
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/bathroom.yaml
+
 # llff parameters
 dataset_type: syn_llff
 factor: 4

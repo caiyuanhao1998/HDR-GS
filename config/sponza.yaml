@@ -2,6 +2,10 @@ scene: sponza
 source_path: data_hdr/synthetic/sponza
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/sponza.yaml
+
 # llff parameters
 dataset_type: syn_llff
 factor: 4

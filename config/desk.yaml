@@ -2,6 +2,10 @@ scene: desk
 source_path: data_hdr/synthetic/desk
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/desk.yaml
+
 # llff parameters
 dataset_type: syn_llff
 factor: 4

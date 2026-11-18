@@ -2,6 +2,10 @@ scene: luckycat
 source_path: data_hdr/real/luckycat
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/luckycat.yaml
+
 # llff parameters
 dataset_type: real_llff
 factor: 4

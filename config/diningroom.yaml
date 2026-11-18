@@ -2,6 +2,10 @@ scene: diningroom
 source_path: data_hdr/synthetic/diningroom
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/diningroom.yaml
+
 # llff parameters
 dataset_type: syn_llff
 factor: 4

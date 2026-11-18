@@ -2,6 +2,8 @@ import argparse
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 from utils.config_utils import parse_training_args
 
 
@@ -40,6 +42,26 @@ class TrainingConfigurationTests(unittest.TestCase):
         checkpoint_args = self.parse('iterations: 10\n', ['--test_only', '--start_checkpoint', 'output/chkpnt1000.pth'])
         self.assertTrue(checkpoint_args.test_only)
         self.assertEqual(checkpoint_args.start_checkpoint, 'output/chkpnt1000.pth')
+
+
+class RefinementDispatchTests(unittest.TestCase):
+    def test_evaluation_and_disabled_refinement_skip_recipe_loading(self):
+        from utils.refinement import run_training
+
+        settings = {'enabled': True, 'plan': 'missing.yaml'}
+        for test_only, refinement in [(True, settings), (False, {'enabled': False})]:
+            with self.subTest(test_only=test_only, refinement=refinement):
+                args = SimpleNamespace(
+                    test_only=test_only, refinement=refinement, test_iterations=[],
+                    save_iterations=[30_000], checkpoint_iterations=[], start_checkpoint=None,
+                    debug_from=-1,
+                )
+                dataset, opt, pipe = object(), object(), object()
+                train = Mock()
+                with patch('utils.refinement.read_plan') as read_plan:
+                    run_training(args, dataset, opt, pipe, train, Mock(), 'synthetic')
+                    read_plan.assert_not_called()
+                train.assert_called_once_with(dataset, opt, pipe, [], [30_000], [], None, -1)
 
 
 if __name__ == '__main__':

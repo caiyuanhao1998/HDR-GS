@@ -2,6 +2,10 @@ scene: computer
 source_path: data_hdr/real/computer
 method: mlp
 
+refinement:
+  enabled: true
+  plan: refinement/computer.yaml
+
 # llff parameters
 dataset_type: real_llff
 factor: 4
