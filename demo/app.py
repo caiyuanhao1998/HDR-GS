@@ -27,7 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from plyfile import PlyData
 import uvicorn
 
-from utils.camera_paths import build_camera_path, export_keyframes, retime_preset, scene_preset, scene_registry
+from utils.camera_paths import build_camera_path, export_keyframes, model_candidates, retime_preset, scene_preset, scene_registry
 
 SCENES = scene_registry()
 PREVIEWS = {item['id']: item for item in json.loads((ROOT / 'demo/scene-previews.json').read_text())}
@@ -293,10 +293,11 @@ def scene_preview(scene, outputs=None):
     item = PREVIEWS[scene]
     base = '/results/previews/' + scene
     video_folder = outputs / 'previews' / scene / 'videos' if outputs else None
-    has_short_preview = video_folder is not None and all(
+    has_local_preview = video_folder is not None and all(
         (video_folder / (mode + '-8s-30fps.mp4')).is_file() for mode in ['ldr', 'hdr'])
-    ldr_url = base + '/videos/ldr-8s-30fps.mp4' if has_short_preview else item['video']
-    hdr_url = base + '/videos/hdr-8s-30fps.mp4' if has_short_preview else item['hdrVideo']
+    ldr_url = base + '/videos/ldr-8s-30fps.mp4' if has_local_preview else item.get('previewVideo', item['video'])
+    hdr_url = base + '/videos/hdr-8s-30fps.mp4' if has_local_preview else item.get('previewHdrVideo', item['hdrVideo'])
+    has_short_preview = has_local_preview or ('previewVideo' in item and 'previewHdrVideo' in item)
     downloads = download_html(item['dataset_scene_url'].rstrip('/'), [
         ('LDR video', ldr_url), ('HDR video', hdr_url),
         ('LDR point cloud', item['assetBase'] + 'ldr.splat'), ('HDR point cloud', item['assetBase'] + 'hdr.splat'),
@@ -311,7 +312,7 @@ def scene_preview(scene, outputs=None):
             viewer_html(base, 'hdr', item['assetBase'], item.get('hdrDisplayExposureEV', 0.)), downloads, note)
 
 
-def make_demo(renderer_python, models_root, outputs, gpu_id):
+def make_demo(renderer_python, models_root, outputs, gpu_id, hosted=None):
     outputs.mkdir(parents=True, exist_ok=True)
     prepare_previews(outputs)
 
@@ -319,12 +320,15 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
         if scene == 'custom':
             if not ply or not mapper:
                 raise gr.Error('Upload both an HDR-GS point_cloud.ply and its matching tone_mapper.pth.')
+            if hosted is not None:
+                hosted.check_uploads(Path(ply), Path(mapper))
             return Path(ply), Path(mapper)
-        entry = next(s for s in SCENES if s['id'] == scene)
-        candidates = [models_root / scene, models_root / entry['model_directory']]
+        candidates = model_candidates(models_root, scene)
         for directory in candidates:
             if (directory / 'point_cloud.ply').is_file() and (directory / 'tone_mapper.pth').is_file():
                 return directory / 'point_cloud.ply', directory / 'tone_mapper.pth'
+        if hosted is not None:
+            return hosted.download_model(scene)
         raise gr.Error('Model not found. Put point_cloud.ply and tone_mapper.pth in {}.'.format(candidates[0]))
 
     def preset_for(scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high):
@@ -332,8 +336,12 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
             raise gr.Error('Choose brightness limits with 0 < minimum <= peak < 1.')
         if custom:
             try:
+                if hosted is not None and Path(custom).stat().st_size > 256 * 1024:
+                    raise ValueError('Upload a camera JSON below 256 KB.')
                 preset = json.loads(Path(custom).read_text())
                 preset.update(brightness_minimum=float(low), brightness_maximum=float(high))
+                if hosted is not None:
+                    hosted.check_timing(preset)
                 build_camera_path(preset)
                 return preset
             except (ValueError, KeyError, TypeError) as error:
@@ -341,9 +349,13 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
         if scene == 'custom':
             if not ply:
                 raise gr.Error('Upload your model before previewing its automatic camera path.')
+            if hosted is not None:
+                hosted.check_ply(Path(ply))
             preset = estimate_custom_preset(ply)
         else:
             preset = copy.deepcopy(scene_preset(scene))
+        if hosted is not None:
+            hosted.check_timing(dict(duration_seconds=seconds, fps=fps))
         preset = retime_preset(preset, seconds, fps)
         preset.update(motion=MOTIONS[motion], duration_seconds=float(seconds), fps=int(fps),
                       turns_per_leg=float(turns), brightness_minimum=float(low), brightness_maximum=float(high))
@@ -373,8 +385,11 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
         started = time.perf_counter()
         yield start_render()
         try:
-            model_file, tone_file = model_for(scene, ply, mapper)
             preset = preset_for(scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high)
+            if hosted is not None:
+                hosted.check_size(size)
+                hosted.clean_results(outputs)
+            model_file, tone_file = model_for(scene, ply, mapper)
             job = uuid.uuid4().hex
             folder = outputs / job
             folder.mkdir()
@@ -401,7 +416,10 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                     stage, completed, total = 'loading', 0, 1
                     phase_started = time.perf_counter()
                     last_update = 0.
-                    for event in renderer_events(command, env, folder / (mode + '-render.log')):
+                    log = folder / (mode + '-render.log')
+                    events = (hosted.render_events(mode, command[2:], log) if hosted is not None
+                              else renderer_events(command, env, log))
+                    for event in events:
                         if event:
                             stage = event['stage']
                             completed, total = event['completed'], max(1, event['total'])
@@ -428,7 +446,8 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                                gr.update(visible=True, value=render_progress_html(label, fraction, now - started, detail)),
                                gr.skip())
                     process_times[mode] = time.perf_counter() - phase_started
-            for original, name in [(model_file, 'point_cloud.ply'), (tone_file, 'tone_mapper.pth')]:
+            originals = [(model_file, 'point_cloud.ply'), (tone_file, 'tone_mapper.pth')]
+            for original, name in originals if hosted is None else []:
                 target = folder / name
                 try:
                     os.link(str(original), str(target))
@@ -442,9 +461,10 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
             links = [('LDR video', 'ldr.mp4'), ('HDR video', 'hdr.mp4'),
                      ('LDR point cloud', 'assets/scenes/render/ldr.splat'),
                      ('HDR point cloud', 'assets/scenes/render/hdr.splat'),
-                     ('Original point cloud', 'point_cloud.ply'), ('Tone mapper', 'tone_mapper.pth'),
                      ('Camera trajectory', 'camera-path-editable.json'), ('HDR display settings', 'tonemap.json'),
                      ('Raw HDR frame', 'frames_hdr/{:06d}.exr'.format(len(build_camera_path(preset)[0]) // 2))]
+            if hosted is None:
+                links[4:4] = [('Original point cloud', 'point_cloud.ply'), ('Tone mapper', 'tone_mapper.pth')]
             yield ('Render complete in {:.1f} s. Videos and point clouds are ready.'.format(elapsed),
                    video_html(base + '/ldr.mp4', 'Rendered LDR video'),
                    video_html(base + '/hdr.mp4', 'Rendered HDR video'),
@@ -527,10 +547,10 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                             horizontal = gr.Slider(0, 2, 1, step=.05, label='Horizontal amplitude ×', min_width=80)
                             vertical = gr.Slider(0, 2, 1, step=.05, label='Vertical amplitude ×', min_width=80)
                         turns = gr.Slider(.5, 4, 2, step=.5, label='Spiral turns per leg')
-                        seconds = gr.Slider(2, 30, 8, step=1, label='Duration (seconds)')
+                        seconds = gr.Slider(2, 8 if hosted else 30, 8, step=1, label='Duration (seconds)')
                         with gr.Row():
-                            fps = gr.Dropdown([12, 24, 30, 60], value=30, label='FPS', min_width=70)
-                            size = gr.Dropdown([240, 480, 720, 960], value=720, label='Video long side (px)', min_width=110)
+                            fps = gr.Dropdown([12, 24, 30] if hosted else [12, 24, 30, 60], value=30, label='FPS', min_width=70)
+                            size = gr.Dropdown([240, 480, 720] if hosted else [240, 480, 720, 960], value=720, label='Video long side (px)', min_width=110)
                     with gr.Accordion('LDR / HDR appearance', open=False, elem_id='brightness-options'):
                         brightness_mode = gr.Radio(['Project-page gradient', 'Fixed brightness'],
                                                    value='Project-page gradient', label='LDR brightness')
@@ -570,9 +590,10 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                             gr.HTML('<div class="panel-heading">HDR point cloud <span>Interactive</span></div>', padding=False)
                             hdr_viewer = gr.HTML(initial[3], padding=False, elem_id='hdr-viewer', elem_classes='media-html')
                     with gr.Accordion('Downloads · videos & point clouds', open=False, elem_id='result-downloads'):
+                        extra = ('After rendering, download an EXR frame with full HDR radiance.' if hosted
+                                 else 'After rendering, download the original model, tone mapper and an EXR frame with full HDR radiance.')
                         gr.HTML('<p class="downloads-note">MP4 previews play on standard screens. '
-                                'Splat files are interactive previews. After rendering, you can also download '
-                                'the original model, tone mapper and an EXR frame with full HDR radiance.</p>', padding=False)
+                                'Splat files are interactive previews. ' + extra + '</p>', padding=False)
                         downloads = gr.HTML(initial[4], padding=False)
         camera_inputs = [scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high]
         gallery.select(select_thumbnail, outputs=[scene], queue=False, api_name=False, show_progress='hidden')

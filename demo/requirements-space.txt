@@ -1,0 +1,13 @@
+torch==2.9.1
+spaces==0.51.3
+gradio==5.49.1
+huggingface_hub>=0.33.5,<1
+numpy==1.26.4
+pandas>=2.2,<3
+plotly>=5.24,<7
+scipy==1.13.0
+Pillow>=10,<12
+plyfile==1.0.3
+imageio==2.34.1
+imageio-ffmpeg>=0.5,<0.7
+opencv-python-headless==4.10.0.84

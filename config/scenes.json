@@ -4,83 +4,95 @@
     "label": "Bathroom",
     "group": "synthetic",
     "model_directory": "bathroom",
-    "trajectory": "bathroom-project-page.json"
+    "trajectory": "bathroom-project-page.json",
+    "checkpoint_directory": "bathroom"
   },
   {
     "id": "bear",
     "label": "Bear",
     "group": "synthetic",
     "model_directory": "bear",
-    "trajectory": "bear-project-page.json"
+    "trajectory": "bear-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/synthetic/bear"
   },
   {
     "id": "chair",
     "label": "Chair",
     "group": "synthetic",
     "model_directory": "chair",
-    "trajectory": "chair-project-page.json"
+    "trajectory": "chair-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/synthetic/chair"
   },
   {
     "id": "desk",
     "label": "Desk",
     "group": "synthetic",
     "model_directory": "desk",
-    "trajectory": "desk-project-page.json"
+    "trajectory": "desk-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/synthetic/desk"
   },
   {
     "id": "diningroom",
     "label": "Dining Room",
     "group": "synthetic",
     "model_directory": "diningroom",
-    "trajectory": "diningroom-project-page.json"
+    "trajectory": "diningroom-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/synthetic/diningroom"
   },
   {
     "id": "dog",
     "label": "Dog",
     "group": "synthetic",
     "model_directory": "dog",
-    "trajectory": "dog-project-page.json"
+    "trajectory": "dog-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/synthetic/dog"
   },
   {
     "id": "sofa",
     "label": "Sofa",
     "group": "synthetic",
     "model_directory": "sofa_2",
-    "trajectory": "sofa-project-page.json"
+    "trajectory": "sofa-project-page.json",
+    "checkpoint_directory": "sofa_2"
   },
   {
     "id": "sponza",
     "label": "Sponza",
     "group": "synthetic",
     "model_directory": "sponza",
-    "trajectory": "sponza-project-page.json"
+    "trajectory": "sponza-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/synthetic/sponza"
   },
   {
     "id": "flower",
     "label": "Flower",
     "group": "real",
     "model_directory": "flower",
-    "trajectory": "flower-project-page.json"
+    "trajectory": "flower-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/real/flower"
   },
   {
     "id": "computer",
     "label": "Computer",
     "group": "real",
     "model_directory": "computer",
-    "trajectory": "computer-project-page.json"
+    "trajectory": "computer-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/real/computer"
   },
   {
     "id": "box",
     "label": "Box",
     "group": "real",
     "model_directory": "box",
-    "trajectory": "box-project-page.json"
+    "trajectory": "box-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/real/box"
   },
   {
     "id": "luckycat",
     "label": "Lucky Cat",
     "group": "real",
     "model_directory": "luckycat",
-    "trajectory": "luckycat-project-page.json"
+    "trajectory": "luckycat-project-page.json",
+    "checkpoint_directory": "refined-2026-11-18/real/luckycat"
   }
 ]

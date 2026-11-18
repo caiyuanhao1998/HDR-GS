@@ -12,6 +12,13 @@ from utils.project_trajectory import project_page_cameras
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def model_candidates(root, scene):
+    """Find the published checkpoint layout and existing local scene directories."""
+    entry = next(item for item in scene_registry() if item['id'] == scene)
+    directories = dict.fromkeys([entry['checkpoint_directory'], scene, entry['model_directory']])
+    return [Path(root) / directory for directory in directories]
+
+
 def scene_registry():
     return json.loads((ROOT / 'config/scenes.json').read_text())
 

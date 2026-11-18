@@ -1,6 +1,5 @@
 """Shared HDR-GS video renderer used by the two CLIs and the Gradio worker."""
 import argparse
-import hashlib
 import json
 import math
 import os
@@ -16,7 +15,7 @@ from PIL import Image
 
 from gaussian_renderer import render
 from scene.gaussian_model import GaussianModel
-from utils.camera_paths import ROOT, build_camera_path, retime_preset, scene_preset, scene_registry
+from utils.camera_paths import ROOT, build_camera_path, model_candidates, retime_preset, scene_preset, scene_registry
 from utils.graphics_utils import getProjectionMatrix, getWorld2View2
 from utils.hdr_visualization import fit_reinhard, tonemap_hdr, write_exr
 from utils.sh_utils import eval_sh
@@ -90,13 +89,13 @@ def write_splat(model, colors, path, keep, selected_colors=False):
 
 
 class SceneRenderer:
-    def __init__(self, model_file, tone_mapper, preset, max_size):
+    def __init__(self, model_file, tone_mapper, preset, max_size, weights_only=False):
         self.model = GaussianModel(3)
         self.model.load_ply(str(model_file))
         self.has_mapper = tone_mapper.is_file()
         self.mapper_hash = file_sha256(tone_mapper) if self.has_mapper else None
         if self.has_mapper:
-            self.model.load_tonemapper(str(tone_mapper))
+            self.model.load_tonemapper(str(tone_mapper), weights_only=weights_only)
             for channel in 'rgb':
                 getattr(self.model, 'tone_mapper_' + channel).cuda().eval()
         self.preset = preset
@@ -290,13 +289,20 @@ def render_video(mode, args):
     timings = {}
 
     def report(stage, completed=0, total=1):
+        event = dict(mode=mode, stage=stage, completed=int(completed), total=int(total),
+                     elapsed_seconds=round(time.perf_counter() - started, 3))
         if getattr(args, 'progress_json', False):
-            print('HDRGS_PROGRESS ' + json.dumps(dict(mode=mode, stage=stage, completed=int(completed),
-                  total=int(total), elapsed_seconds=round(time.perf_counter() - started, 3))), flush=True)
+            print('HDRGS_PROGRESS ' + json.dumps(event), flush=True)
+        progress_file = getattr(args, 'progress_file', None)
+        if progress_file is not None:
+            temporary = progress_file.with_suffix('.tmp')
+            temporary.write_text(json.dumps(event))
+            temporary.replace(progress_file)
 
     report('loading')
-    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
+    if args.gpu_id is not None:
+        os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
     torch.set_num_threads(2)
     if args.max_size < 2 or args.viewer_max_points < 1:
         raise ValueError('max_size must be >=2 and viewer_max_points must be positive')
@@ -310,15 +316,15 @@ def render_video(mode, args):
         preset = retime_preset(preset, duration, rate)
     poses, times = build_camera_path(preset, args.fps)
     fps = int(preset['fps'] if args.fps is None else args.fps)
-    entry = next(s for s in scene_registry() if s['id'] == args.scene)
     model_path = args.model_path
     if model_path is None:
-        candidates = [args.models_root / args.scene, args.models_root / entry['model_directory']]
+        candidates = model_candidates(args.models_root, args.scene)
         model_path = next((path for path in candidates if path.exists()), candidates[-1])
     model_file = resolve_model(model_path)
     mapper = args.tone_mapper or model_file.parent / 'tone_mapper.pth'
-    model_hash = hashlib.sha256(model_file.read_bytes()).hexdigest()
-    renderer = SceneRenderer(model_file, mapper, preset, args.max_size)
+    model_hash = file_sha256(model_file)
+    renderer = SceneRenderer(model_file, mapper, preset, args.max_size,
+                             weights_only=getattr(args, 'weights_only', False))
     if mode == 'ldr' and not renderer.has_mapper:
         raise ValueError('Missing tone_mapper.pth; use --tone_mapper for the matching weights')
     output = args.output

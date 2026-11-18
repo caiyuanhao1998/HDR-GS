@@ -274,8 +274,14 @@ class GaussianModel:
             getattr(self, "tone_mapper_" + channel).load_state_dict(state[channel + "_weights"])
         self._tone_mapper_loaded = True
 
-    def load_tonemapper(self, path):
-        self.load_tone_mapper_state(torch.load(path, map_location="cpu"))
+    def load_tonemapper(self, path, weights_only=False):
+        kwargs = {"weights_only": True} if weights_only else {}
+        state = torch.load(path, map_location="cpu", **kwargs)
+        if weights_only:
+            width = state.get("tone_mapper_width") if isinstance(state, dict) else None
+            if type(width) is not int or not 2 <= width <= 1024 or width % 2:
+                raise ValueError("Invalid HDR-GS tone-mapper architecture")
+        self.load_tone_mapper_state(state)
 
     def reset_opacity(self):
         opacities_new = inverse_sigmoid(torch.min(self.get_opacity, torch.ones_like(self.get_opacity)*0.01))
