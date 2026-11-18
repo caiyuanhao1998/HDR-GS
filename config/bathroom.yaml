@@ -4,7 +4,7 @@ method: mlp
 
 refinement:
   enabled: true
-  plan: refinement/bathroom.yaml
+  plan: refinement/bathroom-from-scratch.yaml
 
 # llff parameters
 dataset_type: syn_llff

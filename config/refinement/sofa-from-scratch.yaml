@@ -1,0 +1,57 @@
+version: 1
+scene: sofa
+group: synthetic
+base_config: ../sofa.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: 324bd6fa58175e6e76d84e7e6e38d034f362f72ad4e6698e8b2da48a5dee586f
+    tone_mapper.pth: ea99111792f4e9faf7484eeda38fbe4e45f560b0719084ca65e5821dac589070
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_synthetic.py
+  config: config/sofa.yaml
+  flags:
+  - --eval
+  - --syn
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 420
+  seed: 100
+  recipe: mapper-only
+  loss:
+    l1: 0.4
+    mse: 2.0
+    dssim: 0.18
+    perceptual: 0.06
+    hdr_weight: 0.0
+    lr_scale: 2.0
+    freeze_hdr: true
+expected_test_metrics:
+  HDR:
+    psnr: 42.37828265919405
+    ssim: 0.9895050104926614
+    lpips: 0.005250300198574276
+    count: 85
+  LDR-NE:
+    psnr: 25.751548542695886
+    ssim: 0.9731362619820763
+    lpips: 0.02365128301522311
+    count: 34
+  LDR-OE:
+    psnr: 41.947982114904065
+    ssim: 0.9898978062704498
+    lpips: 0.005442206852831969
+    count: 51
+reference_weights:
+  point_cloud_sha256: 324bd6fa58175e6e76d84e7e6e38d034f362f72ad4e6698e8b2da48a5dee586f
+  tone_mapper_sha256: aca8a2e858615ef92d7cf92c0c84fadb10b492058a11d4607e8441246d2dfc8c

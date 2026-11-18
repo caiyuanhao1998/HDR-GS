@@ -45,6 +45,23 @@ class TrainingConfigurationTests(unittest.TestCase):
 
 
 class RefinementDispatchTests(unittest.TestCase):
+    def test_default_scene_recipes_initialize_from_data(self):
+        import yaml
+        from utils.refinement import SCENES, read_plan
+
+        config_dir = Path(__file__).resolve().parents[1] / 'config'
+        for scene in SCENES:
+            with self.subTest(scene=scene):
+                config = yaml.safe_load((config_dir / f'{scene}.yaml').read_text())
+                settings = config['refinement']
+                self.assertTrue(settings['enabled'])
+                self.assertNotIn('load_path', settings)
+                plan = read_plan(config_dir / settings['plan'])
+                self.assertEqual(plan['scene'], scene)
+                initialization = plan['initialization']
+                self.assertEqual(initialization['kind'], 'original_training')
+                self.assertEqual(initialization['steps'], config['iterations'])
+
     def test_evaluation_and_disabled_refinement_skip_recipe_loading(self):
         from utils.refinement import run_training
 

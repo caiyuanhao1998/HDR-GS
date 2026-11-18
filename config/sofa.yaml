@@ -4,7 +4,7 @@ method: mlp
 
 refinement:
   enabled: true
-  plan: refinement/sofa.yaml
+  plan: refinement/sofa-from-scratch.yaml
 
 # llff parameters
 dataset_type: syn_llff

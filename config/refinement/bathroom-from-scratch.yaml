@@ -1,0 +1,70 @@
+version: 1
+scene: bathroom
+group: synthetic
+base_config: ../bathroom.yaml
+initialization:
+  checkpoint_files:
+    point_cloud.ply: fa3dd9709e34426ef30710a8e8af5c24f5abbc93e280ac882eec14db6ecb3544
+    tone_mapper.pth: 2a8d071bf5db888f5bbb5dfc374da26d9bffa8e81df5962b757ff38765dccbe9
+  kind: original_training
+  code_revision: 821ea472cc9bf2b8fb291c518c07ea89314730b9
+  steps: 30000
+  script: train_synthetic.py
+  config: config/bathroom.yaml
+  flags:
+  - --eval
+  - --syn
+learning_rates:
+  xyz: 3.0e-06
+  f_dc: 0.00045
+  f_rest: 2.25e-05
+  opacity: 0.0012
+  scaling: 0.0004
+  rotation: 0.0001
+  tone_mapper_r: 2.5e-05
+  tone_mapper_g: 2.5e-05
+  tone_mapper_b: 2.5e-05
+stages:
+- steps: 1200
+  seed: 100
+  recipe: synthetic
+  loss:
+    l1: 0.25
+    mse: 2.5
+    dssim: 0.18
+    perceptual: 0.08
+    hdr_weight: 3.0
+    lr_scale: 0.65
+    freeze_hdr: false
+- steps: 420
+  seed: 100
+  recipe: mapper-only
+  loss:
+    l1: 0.4
+    mse: 2.0
+    dssim: 0.18
+    perceptual: 0.06
+    hdr_weight: 0.0
+    lr_scale: 2.0
+    freeze_hdr: true
+    native_dssim: 0.0
+    mapper_lr_scale: 1.0
+expected_test_metrics:
+  HDR:
+    psnr: 35.22848140492159
+    ssim: 0.9628074239282047
+    lpips: 0.020146186244400108
+    count: 85
+  LDR-NE:
+    psnr: 40.309686324175665
+    ssim: 0.9755657420438879
+    lpips: 0.01444056335672298
+    count: 34
+  LDR-OE:
+    psnr: 41.05356231390261
+    ssim: 0.9737082918485006
+    lpips: 0.014495222445796518
+    count: 51
+reference_weights:
+  point_cloud_sha256: 3e18971479d9afb245d6601bc355733bc7f11d1a797bcfebe6e940433fd1df82
+  tone_mapper_sha256: 6785147af9276a0891912187ce69e997bea340c524f8e0a574ddb0a4a87492ea
