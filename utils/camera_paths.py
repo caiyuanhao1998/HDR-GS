@@ -23,6 +23,24 @@ def scene_preset(scene):
     return json.loads((ROOT / 'config/trajectories' / entry['trajectory']).read_text())
 
 
+def retime_preset(preset, duration_seconds, fps):
+    """Change playback speed and sampling without changing the spatial path."""
+    result = copy.deepcopy(preset)
+    duration = float(duration_seconds)
+    original = float(result['duration_seconds'])
+    if not np.isfinite(duration) or duration <= 0 or original <= 0:
+        raise ValueError('Camera duration must be positive')
+    ratio = duration / original
+    result['duration_seconds'] = duration
+    result['fps'] = int(fps)
+    if 'turn_blend_seconds' in result:
+        result['turn_blend_seconds'] *= ratio
+    for keyframe in result.get('keyframes', []):
+        keyframe['time_seconds'] *= ratio
+    build_camera_path(result)
+    return result
+
+
 def validate_pose_matrices(poses):
     poses = np.asarray(poses, dtype=np.float64)
     if poses.ndim != 3 or poses.shape[1:] != (4, 4) or len(poses) < 3:

@@ -5,6 +5,7 @@ import json
 import math
 import os
 import shutil
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -15,7 +16,7 @@ from PIL import Image
 
 from gaussian_renderer import render
 from scene.gaussian_model import GaussianModel
-from utils.camera_paths import ROOT, build_camera_path, scene_preset, scene_registry
+from utils.camera_paths import ROOT, build_camera_path, retime_preset, scene_preset, scene_registry
 from utils.graphics_utils import getProjectionMatrix, getWorld2View2
 from utils.hdr_visualization import fit_reinhard, tonemap_hdr, write_exr
 from utils.sh_utils import eval_sh
@@ -56,10 +57,12 @@ def add_arguments(parser, mode):
     parser.add_argument('--trajectory', type=Path, help='Procedural preset or custom keyframe JSON')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--gpu_id', default='0')
-    parser.add_argument('--fps', type=int)
+    parser.add_argument('--fps', type=int, help='Output frame rate; defaults to 30 for built-in paths')
+    parser.add_argument('--duration', type=float, help='Output duration in seconds; defaults to 8 for built-in paths')
     parser.add_argument('--max_size', type=int, default=720)
     parser.add_argument('--preview_only', action='store_true', help='Render calibration/contact views only')
     parser.add_argument('--no_viewer', action='store_true', help='Skip interactive viewer exports')
+    parser.add_argument('--progress_json', action='store_true', help='Emit structured progress for the Gradio UI')
     parser.add_argument('--viewer_max_points', type=int, default=600000)
     if mode == 'ldr':
         parser.add_argument('--brightness', type=float, help='Fixed mean luminance in (0,1); omit for project-page gradient')
@@ -232,6 +235,15 @@ def contact_sheet(samples, output):
 
 @torch.no_grad()
 def render_video(mode, args):
+    started = time.perf_counter()
+    timings = {}
+
+    def report(stage, completed=0, total=1):
+        if getattr(args, 'progress_json', False):
+            print('HDRGS_PROGRESS ' + json.dumps(dict(mode=mode, stage=stage, completed=int(completed),
+                  total=int(total), elapsed_seconds=round(time.perf_counter() - started, 3))), flush=True)
+
+    report('loading')
     os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
     torch.set_num_threads(2)
@@ -240,6 +252,11 @@ def render_video(mode, args):
     if mode == 'ldr' and args.brightness is not None and not 0 < args.brightness < 1:
         raise ValueError('--brightness must be between 0 and 1')
     preset = json.loads(args.trajectory.read_text()) if args.trajectory else scene_preset(args.scene)
+    duration_override = getattr(args, 'duration', None)
+    if args.trajectory is None or duration_override is not None or args.fps is not None:
+        duration = duration_override if duration_override is not None else (8 if args.trajectory is None else preset['duration_seconds'])
+        rate = args.fps if args.fps is not None else (30 if args.trajectory is None else preset['fps'])
+        preset = retime_preset(preset, duration, rate)
     poses, times = build_camera_path(preset, args.fps)
     fps = int(preset['fps'] if args.fps is None else args.fps)
     entry = next(s for s in scene_registry() if s['id'] == args.scene)
@@ -259,15 +276,24 @@ def render_video(mode, args):
         previous_metadata = output / (previous_mode + '-metadata.json')
         if previous_metadata.is_file() and json.loads(previous_metadata.read_text()).get('model_sha256') != model_hash:
             raise ValueError('Output contains a different checkpoint. Choose a new --output directory.')
-    sample_ids = sorted(set(np.linspace(0, len(poses) - 1, 33).round().astype(int).tolist() + [len(poses) // 2]))
-    raw_samples = {index: renderer.raw(poses[index]) for index in sample_ids}
+    torch.cuda.synchronize()
+    timings['loading_seconds'] = time.perf_counter() - started
+    calibration_started = time.perf_counter()
+    report('calibration')
     settings_path = output / 'tonemap.json'
+    raw_samples = {}
     if mode == 'ldr' and settings_path.is_file():
+        # Paired renders reuse the HDR calibration; no duplicate HDR samples.
         settings = json.loads(settings_path.read_text())
     else:
+        sample_ids = sorted(set(np.linspace(0, len(poses) - 1, 33).round().astype(int).tolist() + [len(poses) // 2]))
+        raw_samples = {index: renderer.raw(poses[index]) for index in sample_ids}
         settings = fit_reinhard(raw_samples.values(), key=getattr(args, 'key', .18),
             white_percentile=getattr(args, 'white_percentile', 99.95), saturation=getattr(args, 'saturation', 1.))
         settings_path.write_text(json.dumps(settings, indent=2) + '\n')
+    timings['calibration_seconds'] = time.perf_counter() - calibration_started
+    video_started = time.perf_counter()
+    report('frames', 0, len(poses))
     np.save(str(output / 'camera_to_world.npy'), poses)
     (output / 'trajectory.json').write_text(json.dumps(preset, indent=2) + '\n')
     low, high = float(preset.get('brightness_minimum', .065)), float(preset.get('brightness_maximum', .5))
@@ -310,16 +336,22 @@ def render_video(mode, args):
                 item.update(brightness_target=float(brightness[index]), brightness_actual=actual,
                             exposure=float(preset.get('base_exposure', 1.)) * 2 ** ev)
             stats.append(item)
+            if (index + 1) % max(1, fps // 4) == 0 or index == len(poses) - 1:
+                report('frames', index + 1, len(poses))
             if index % fps == 0:
                 print('{} FRAME {} / {}'.format(mode.upper(), index, len(poses)), flush=True)
     finally:
         if writer is not None:
+            report('encoding')
             writer.close()
     if writer is not None:
         temporary.replace(output / (mode + '.mp4'))
     contact_sheet(frames_for_contact, output / (mode + '-contact.jpg'))
+    timings['video_and_encoding_seconds'] = time.perf_counter() - video_started
+    viewer_started = time.perf_counter()
     viewer = None
     if not args.no_viewer:
+        report('point_clouds')
         viewer_brightness = args.brightness if mode == 'ldr' and args.brightness is not None else (low + high) / 2
         if mode == 'hdr' and (output / 'ldr-metadata.json').is_file():
             previous_ldr = json.loads((output / 'ldr-metadata.json').read_text())
@@ -327,7 +359,11 @@ def render_video(mode, args):
                 viewer_brightness = float(previous_ldr['frame_stats'][0]['brightness_target'])
         viewer = renderer.export_viewer(output, poses, settings, viewer_brightness, exposure_ev,
                                        args.viewer_max_points, model_hash)
+    torch.cuda.synchronize()
+    timings['point_clouds_seconds'] = time.perf_counter() - viewer_started
+    timings['total_seconds'] = time.perf_counter() - started
     metadata = dict(render_mode=mode, frames=len(poses), fps=fps, seconds=len(poses) / fps,
+        timings=timings, gpu=torch.cuda.get_device_name(0),
         model_sha256=model_hash, model_matches_project_page=model_hash == preset.get('model_sha256'),
         trajectory=preset, calibration=settings, fixed_exposure_ev=exposure_ev,
         visualization='extended Reinhard + sRGB; SDR H.264 preview' if mode == 'hdr' else 'learned HDR-GS tone mapper',
@@ -335,6 +371,7 @@ def render_video(mode, args):
         frame_stats=stats, resolution=[frame.shape[1], frame.shape[0]], viewer=viewer,
         video=None if args.preview_only else mode + '.mp4')
     (output / (mode + '-metadata.json')).write_text(json.dumps(metadata, indent=2) + '\n')
+    report('done', 1, 1)
     print('{} {} READY {}'.format(mode.upper(), 'PREVIEW' if args.preview_only else 'VIDEO', output), flush=True)
     return metadata
 

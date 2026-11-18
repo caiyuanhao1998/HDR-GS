@@ -4,11 +4,13 @@ import copy
 import html
 import json
 import os
+import queue
 import shutil
 from pathlib import Path
 import subprocess
 import sys
 import threading
+import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from plyfile import PlyData
 import uvicorn
 
-from utils.camera_paths import build_camera_path, export_keyframes, scene_preset, scene_registry
+from utils.camera_paths import build_camera_path, export_keyframes, retime_preset, scene_preset, scene_registry
 
 SCENES = scene_registry()
 PREVIEWS = {item['id']: item for item in json.loads((ROOT / 'demo/scene-previews.json').read_text())}
@@ -41,11 +43,15 @@ def estimate_custom_preset(ply_path):
     extent = max(float(np.ptp(np.percentile(points, [2, 98], axis=0), axis=0).max()), .1)
     start = np.eye(4)
     start[:3, 3] = center - [0, 0, extent * 1.6]
-    return dict(name='Custom model', fps=60, duration_seconds=16, motion='spiral',
+    return dict(name='Custom model', fps=30, duration_seconds=8, motion='spiral',
                 camera_to_world_start=start.tolist(), camera_intrinsics=dict(width=720, height=720, fx=864., fy=864.),
                 forward_travel=extent * .5, lateral_radius_x=extent * .08, lateral_radius_y=extent * .05,
-                turns_per_leg=2, turn_blend_seconds=.6, viewport_crop=1., base_exposure=1.,
+                turns_per_leg=2, turn_blend_seconds=.3, viewport_crop=1., base_exposure=1.,
                 brightness_minimum=.065, brightness_maximum=.5)
+
+
+def demo_scene_preset(scene):
+    return retime_preset(scene_preset(scene), 8, 30)
 
 
 def plot_path(preset):
@@ -66,7 +72,8 @@ def plot_path(preset):
             (np.vstack([path[peak:], path[:1]]), 'Backward', '#999999', 'dash')]:
         figure.add_trace(go.Scatter3d(
             x=points[:, 0], y=points[:, 1], z=points[:, 2], mode='lines', name=label,
-            line=dict(color=color, width=4, dash=dash), hoverinfo='name'))
+            line=dict(color=color, width=4, dash=dash),
+            hovertemplate='X %{x:.2f}<br>Z %{y:.2f}<br>−Y %{z:.2f}<extra>'+label+'</extra>'))
 
     intr = preset['camera_intrinsics']
     crop = float(preset.get('viewport_crop', 1))
@@ -110,14 +117,19 @@ def plot_path(preset):
     bounds = np.concatenate(bounds)
     center = (bounds.max(0) + bounds.min(0)) / 2
     radius = max(float(np.ptp(bounds, axis=0).max()), .1) * .57
-    axes = [dict(visible=False, range=[float(value - radius), float(value + radius)]) for value in center]
+    axes = [dict(title=dict(text=label, font=dict(size=9)),
+                 range=[float(value - radius), float(value + radius)], nticks=3, tickformat='.2g',
+                 tickfont=dict(size=8), color='#777777', gridcolor='#dedede',
+                 zerolinecolor='#aaaaaa', linecolor='#cccccc', showbackground=False, showgrid=True)
+            for value, label in zip(center, ['X', 'Z', '−Y'])]
     figure.update_layout(
-        height=180, showlegend=False, margin=dict(l=0, r=0, b=0, t=0),
+        height=180, showlegend=False, margin=dict(l=8, r=8, b=12, t=4),
         paper_bgcolor='#fafafa', plot_bgcolor='#fafafa',
         font=dict(family='Arial, sans-serif', size=10, color='#666666'),
         hoverlabel=dict(bgcolor='#ffffff', bordercolor='#aaaaaa', font_color='#444444'),
-        scene=dict(aspectmode='cube', bgcolor='#fafafa', xaxis=axes[0], yaxis=axes[1], zaxis=axes[2],
-                   camera=dict(eye=dict(x=1.35, y=-.2, z=.8), up=dict(x=0, y=0, z=1))),
+        scene=dict(aspectmode='cube', domain=dict(x=[0, 1], y=[0, 1]),
+                   bgcolor='#fafafa', xaxis=axes[0], yaxis=axes[1], zaxis=axes[2],
+                   camera=dict(eye=dict(x=2.2, y=-2.4, z=1.8), up=dict(x=0, y=0, z=1))),
         uirevision='compact-camera-preview')
     return figure
 
@@ -170,18 +182,88 @@ def video_html(url, label, poster=None):
                 html.escape(label, quote=True), poster_attr, html.escape(str(url), quote=True))
 
 
-def viewer_html(base, mode):
-    return ('<iframe title="{} Gaussian point cloud" '
-            'src="{}/viewer/index.html?scene=render&amp;mode={}&amp;embed=1" '
-            'allow="fullscreen"></iframe>').format(mode.upper(), html.escape(base, quote=True), mode)
+def viewer_html(base, mode, asset_base=None, exposure_ev=0.):
+    source = base + '/viewer/index.html?scene=render&mode=' + mode + '&embed=1&controls=external'
+    download_base = asset_base or base + '/assets/scenes/render/'
+    download = download_base.rstrip('/') + '/' + mode + '.splat'
+    if download.startswith('https://huggingface.co/'):
+        download += '?download=true'
+    if mode == 'hdr':
+        adjustment = ('<label class="viewer-exposure">Exposure '
+                      '<input type="range" min="-8" max="8" step="0.1" value="{0}" '
+                      'aria-label="HDR point cloud exposure"><output>{0:.1f} EV</output></label>').format(float(exposure_ev))
+    else:
+        adjustment = '<span class="viewer-hint">Drag to orbit · Right-drag to pan · Scroll to zoom</span>'
+    return ('<section class="gaussian-panel" data-mode="{mode}">'
+            '<div class="gaussian-viewport"><iframe title="{title} Gaussian point cloud" src="{source}" '
+            'allow="fullscreen"></iframe></div>'
+            '<div class="viewer-action-row">'
+            '<button type="button" data-viewer-action="reset" aria-label="Reset {title} view">Reset view</button>'
+            '<button type="button" data-viewer-action="fullscreen" aria-label="Fullscreen {title} point cloud">Fullscreen</button>'
+            '<a class="viewer-download" href="{download}" download="{mode}.splat">Download splat</a>'
+            '</div><div class="viewer-adjustment">{adjustment}</div></section>').format(
+                mode=mode, title=mode.upper(), source=html.escape(source, quote=True),
+                download=html.escape(download, quote=True), adjustment=adjustment)
+
+
+def render_progress_html(label, fraction=0., elapsed=0., detail=''):
+    percent = max(0., min(100., float(fraction) * 100))
+    return ('<section class="render-loading"><div class="render-progress-card" role="status" aria-live="polite">'
+            '<strong>{}</strong><div class="render-progress-heading"><span>{}</span><span>{:.0f}%</span></div>'
+            '<progress value="{:.2f}" max="100" aria-label="Render progress"></progress>'
+            '<p>Elapsed {:.1f} s</p></div></section>').format(
+                html.escape(label), html.escape(detail or 'Preparing the renderer'), percent, percent, float(elapsed))
+
+
+def renderer_events(command, env, log):
+    """Stream structured progress while preserving the complete CUDA worker log."""
+    events = queue.Queue()
+    process = subprocess.Popen(command, cwd=str(ROOT), env=env, stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, text=True, bufsize=1)
+
+    def read_output():
+        with log.open('w') as stream:
+            for line in process.stdout:
+                stream.write(line)
+                stream.flush()
+                if line.startswith('HDRGS_PROGRESS '):
+                    try:
+                        events.put(json.loads(line.split(' ', 1)[1]))
+                    except (ValueError, TypeError):
+                        pass
+        events.put(None)
+
+    reader = threading.Thread(target=read_output, daemon=True)
+    reader.start()
+    try:
+        finished = False
+        while not finished:
+            try:
+                event = events.get(timeout=.5)
+                finished = event is None
+            except queue.Empty:
+                event = {}
+            if not finished:
+                yield event
+        reader.join()
+        if process.wait():
+            raise RuntimeError(log.read_text()[-2500:])
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            process.wait()
 
 
 def download_html(base, links):
-    suffix = '?download=true' if base.startswith('https://huggingface.co/') else ''
-    return '<div class="downloads-grid">' + ''.join(
-        '<a class="download-link" href="{}/{}" download>{}<span>{}</span></a>'.format(
-            html.escape(base, quote=True), html.escape(path + suffix, quote=True), html.escape(label),
-            html.escape(Path(path).suffix.lstrip('.').upper())) for label, path in links) + '</div>'
+    items = []
+    for label, path in links:
+        url = path if path.startswith(('https://', 'http://', '/')) else base.rstrip('/') + '/' + path
+        if url.startswith('https://huggingface.co/'):
+            url += '?download=true'
+        items.append('<a class="download-link" href="{}" download>{}<span>{}</span></a>'.format(
+            html.escape(url, quote=True), html.escape(label),
+            html.escape(Path(path.split('?', 1)[0]).suffix.lstrip('.').upper())))
+    return '<div class="downloads-grid">' + ''.join(items) + '</div>'
 
 
 def scene_summary(scene):
@@ -201,25 +283,32 @@ def prepare_previews(outputs):
         metadata = copy.deepcopy(item)
         metadata['id'] = 'render'
         (folder / 'assets/scenes.json').write_text(json.dumps([metadata]))
-        (folder / 'camera-path-editable.json').write_text(json.dumps(export_keyframes(scene_preset(scene)), indent=2) + '\n')
+        (folder / 'camera-path-editable.json').write_text(json.dumps(export_keyframes(demo_scene_preset(scene)), indent=2) + '\n')
 
 
-def scene_preview(scene):
+def scene_preview(scene, outputs=None):
     if scene == 'custom':
         empty = '<div class="empty-preview">Upload a model, then render to see your results.</div>'
         return empty, empty, empty, empty, '', 'Upload a point cloud and tone mapper to begin.'
     item = PREVIEWS[scene]
     base = '/results/previews/' + scene
+    video_folder = outputs / 'previews' / scene / 'videos' if outputs else None
+    has_short_preview = video_folder is not None and all(
+        (video_folder / (mode + '-8s-30fps.mp4')).is_file() for mode in ['ldr', 'hdr'])
+    ldr_url = base + '/videos/ldr-8s-30fps.mp4' if has_short_preview else item['video']
+    hdr_url = base + '/videos/hdr-8s-30fps.mp4' if has_short_preview else item['hdrVideo']
     downloads = download_html(item['dataset_scene_url'].rstrip('/'), [
-        ('LDR video', 'videos/ldr.mp4'), ('HDR video', 'videos/hdr.mp4'),
+        ('LDR video', ldr_url), ('HDR video', hdr_url),
         ('LDR point cloud', 'point_clouds/ldr.splat'), ('HDR point cloud', 'point_clouds/hdr.splat'),
-        ('Camera trajectory', 'cameras/camera-path.json'), ('HDR display settings', 'tonemap.json')])
-    return (video_html(item['video'], item['label'] + ' LDR video',
+        ('Camera trajectory', base + '/camera-path-editable.json'), ('HDR display settings', 'tonemap.json')])
+    note = ('Scene preview · 8 s / 30 FPS. Adjust settings to render a new version.' if has_short_preview else
+            'Project-page preview · 16 s / 60 FPS. Render to apply your settings.')
+    return (video_html(ldr_url, item['label'] + ' LDR video',
                        item['dataset_scene_url'] + 'posters/ldr.webp'),
-            video_html(item['hdrVideo'], item['label'] + ' HDR video',
+            video_html(hdr_url, item['label'] + ' HDR video',
                        '/studio-assets/thumbnails/' + scene + '.webp'),
-            viewer_html(base, 'ldr'), viewer_html(base, 'hdr'), downloads,
-            'Showing the project-page preview. Adjust settings and render your own version.')
+            viewer_html(base, 'ldr', item['assetBase']),
+            viewer_html(base, 'hdr', item['assetBase'], item.get('hdrDisplayExposureEV', 0.)), downloads, note)
 
 
 def make_demo(renderer_python, models_root, outputs, gpu_id):
@@ -255,12 +344,12 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
             preset = estimate_custom_preset(ply)
         else:
             preset = copy.deepcopy(scene_preset(scene))
+        preset = retime_preset(preset, seconds, fps)
         preset.update(motion=MOTIONS[motion], duration_seconds=float(seconds), fps=int(fps),
                       turns_per_leg=float(turns), brightness_minimum=float(low), brightness_maximum=float(high))
         preset['forward_travel'] *= float(forward)
         preset['lateral_radius_x'] *= float(horizontal)
         preset['lateral_radius_y'] *= float(vertical)
-        preset['turn_blend_seconds'] = min(.6, float(seconds) / 8)
         build_camera_path(preset)
         return preset
 
@@ -272,65 +361,115 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
         destination.write_text(json.dumps(export_keyframes(preset), indent=2) + '\n')
         return plot_path(preset), str(destination), 'Trajectory updated. Download its camera JSON or render both videos.'
 
+    def start_render():
+        # Clear old media immediately, including any playing videos or WebGL frames.
+        return ('Rendering…', '', '', '', '', '', gr.skip(), gr.skip(),
+                gr.update(visible=False),
+                gr.update(visible=True, value=render_progress_html('Preparing render')),
+                gr.update(interactive=False, value='Rendering…'))
+
     def render_pair(scene, ply, mapper, custom, motion, forward, horizontal, vertical, turns, seconds, fps,
-                    low, high, brightness_mode, fixed, size, hdr_ev, progress=gr.Progress()):
-        model_file, tone_file = model_for(scene, ply, mapper)
-        preset = preset_for(scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high)
-        job = uuid.uuid4().hex
-        folder = outputs / job
-        folder.mkdir()
-        trajectory = folder / 'camera-path.json'
-        trajectory.write_text(json.dumps(preset, indent=2) + '\n')
-        editable = folder / 'camera-path-editable.json'
-        editable.write_text(json.dumps(export_keyframes(preset), indent=2) + '\n')
-        common = ['--scene', scene if scene != 'custom' else 'bathroom', '--model_path', str(model_file),
-                  '--tone_mapper', str(tone_file), '--trajectory', str(trajectory), '--output', str(folder),
-                  '--max_size', str(int(size)), '--gpu_id', str(gpu_id)]
-        env = os.environ.copy()
-        env.update(TMPDIR=str(outputs / '.tmp'), OMP_NUM_THREADS='2', OPENBLAS_NUM_THREADS='1',
-                   PYTHONDONTWRITEBYTECODE='1', OPENCV_IO_ENABLE_OPENEXR='1')
-        Path(env['TMPDIR']).mkdir(exist_ok=True)
-        # One local GPU render job at a time, while the UI remains responsive.
-        with LOCK:
-            for index, mode in enumerate(['hdr', 'ldr']):
-                progress((index, 2), desc='Rendering {} video and Gaussian previews'.format(mode.upper()))
-                command = [str(renderer_python), str(ROOT / ('render_' + mode + '.py'))] + common
-                if mode == 'hdr':
-                    command += ['--exposure', str(hdr_ev)]
-                elif brightness_mode == 'Fixed brightness':
-                    command += ['--brightness', str(fixed)]
-                log = folder / (mode + '-render.log')
-                with log.open('w') as stream:
-                    result = subprocess.run(command, cwd=str(ROOT), env=env, stdout=stream, stderr=subprocess.STDOUT)
-                if result.returncode:
-                    raise gr.Error('{} rendering failed:\n{}'.format(mode.upper(), log.read_text()[-2500:]))
-        for original, name in [(model_file, 'point_cloud.ply'), (tone_file, 'tone_mapper.pth')]:
-            target = folder / name
-            try:
-                os.link(str(original), str(target))
-            except OSError:
-                shutil.copy2(str(original), str(target))
-        base = '/results/' + job
-        links = [('LDR video', 'ldr.mp4'), ('HDR video', 'hdr.mp4'),
-                 ('LDR point cloud', 'assets/scenes/render/ldr.splat'),
-                 ('HDR point cloud', 'assets/scenes/render/hdr.splat'),
-                 ('Original point cloud', 'point_cloud.ply'), ('Tone mapper', 'tone_mapper.pth'),
-                 ('Camera trajectory', 'camera-path-editable.json'), ('HDR display settings', 'tonemap.json'),
-                 ('Raw HDR frame', 'frames_hdr/{:06d}.exr'.format(len(build_camera_path(preset)[0]) // 2))]
-        progress(1, desc='Ready')
-        return ('Render complete. Both videos, interactive point clouds and source files are ready.',
-                video_html(base + '/ldr.mp4', 'Rendered LDR video'),
-                video_html(base + '/hdr.mp4', 'Rendered HDR video'),
-                viewer_html(base, 'ldr'), viewer_html(base, 'hdr'), download_html(base, links),
-                plot_path(preset), str(editable))
+                    low, high, brightness_mode, fixed, size, hdr_ev):
+        started = time.perf_counter()
+        yield start_render()
+        try:
+            model_file, tone_file = model_for(scene, ply, mapper)
+            preset = preset_for(scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high)
+            job = uuid.uuid4().hex
+            folder = outputs / job
+            folder.mkdir()
+            trajectory = folder / 'camera-path.json'
+            trajectory.write_text(json.dumps(preset, indent=2) + '\n')
+            editable = folder / 'camera-path-editable.json'
+            editable.write_text(json.dumps(export_keyframes(preset), indent=2) + '\n')
+            common = ['--scene', scene if scene != 'custom' else 'bathroom', '--model_path', str(model_file),
+                      '--tone_mapper', str(tone_file), '--trajectory', str(trajectory), '--output', str(folder),
+                      '--max_size', str(int(size)), '--gpu_id', str(gpu_id), '--progress_json']
+            env = os.environ.copy()
+            env.update(TMPDIR=str(outputs / '.tmp'), OMP_NUM_THREADS='2', OPENBLAS_NUM_THREADS='1',
+                       PYTHONDONTWRITEBYTECODE='1', OPENCV_IO_ENABLE_OPENEXR='1')
+            Path(env['TMPDIR']).mkdir(exist_ok=True)
+            process_times = {}
+            with LOCK:
+                for mode in ['hdr', 'ldr']:
+                    command = [str(renderer_python), str(ROOT / ('render_' + mode + '.py'))] + common
+                    if mode == 'hdr':
+                        # LDR exports the matching pair of point clouds once both videos are ready.
+                        command += ['--exposure', str(hdr_ev), '--no_viewer']
+                    elif brightness_mode == 'Fixed brightness':
+                        command += ['--brightness', str(fixed)]
+                    stage, completed, total = 'loading', 0, 1
+                    phase_started = time.perf_counter()
+                    last_update = 0.
+                    for event in renderer_events(command, env, folder / (mode + '-render.log')):
+                        if event:
+                            stage = event['stage']
+                            completed, total = event['completed'], max(1, event['total'])
+                        now = time.perf_counter()
+                        if now - last_update < .4 and not event:
+                            continue
+                        last_update = now
+                        base = 0. if mode == 'hdr' else .46
+                        fractions = dict(loading=.01, calibration=.04,
+                                         frames=.06 + .35 * completed / total,
+                                         encoding=.42, point_clouds=.92, done=.99)
+                        fraction = fractions.get(stage, .01)
+                        if stage not in ['point_clouds', 'done']:
+                            fraction += base
+                        elif stage == 'done' and mode == 'hdr':
+                            fraction = .45
+                        label = 'Exporting point clouds' if stage == 'point_clouds' else 'Rendering {} video'.format(mode.upper())
+                        detail = ('Frame {:,} / {:,}'.format(completed, total) if stage == 'frames' else
+                                  dict(loading='Loading model', calibration='Calibrating HDR display',
+                                       encoding='Encoding MP4', point_clouds='Preparing both interactive viewers',
+                                       done='Finishing outputs').get(stage, 'Preparing renderer'))
+                        yield ('Rendering…', gr.skip(), gr.skip(), gr.skip(), gr.skip(), gr.skip(),
+                               gr.skip(), gr.skip(), gr.skip(),
+                               gr.update(visible=True, value=render_progress_html(label, fraction, now - started, detail)),
+                               gr.skip())
+                    process_times[mode] = time.perf_counter() - phase_started
+            for original, name in [(model_file, 'point_cloud.ply'), (tone_file, 'tone_mapper.pth')]:
+                target = folder / name
+                try:
+                    os.link(str(original), str(target))
+                except OSError:
+                    shutil.copy2(str(original), str(target))
+            elapsed = time.perf_counter() - started
+            (folder / 'render-timing.json').write_text(json.dumps(dict(
+                total_seconds=elapsed, cli_seconds=process_times, frames_per_video=len(build_camera_path(preset)[0]),
+                fps=int(preset['fps']), long_side_px=int(size)), indent=2) + '\n')
+            base = '/results/' + job
+            links = [('LDR video', 'ldr.mp4'), ('HDR video', 'hdr.mp4'),
+                     ('LDR point cloud', 'assets/scenes/render/ldr.splat'),
+                     ('HDR point cloud', 'assets/scenes/render/hdr.splat'),
+                     ('Original point cloud', 'point_cloud.ply'), ('Tone mapper', 'tone_mapper.pth'),
+                     ('Camera trajectory', 'camera-path-editable.json'), ('HDR display settings', 'tonemap.json'),
+                     ('Raw HDR frame', 'frames_hdr/{:06d}.exr'.format(len(build_camera_path(preset)[0]) // 2))]
+            yield ('Render complete in {:.1f} s. Videos and point clouds are ready.'.format(elapsed),
+                   video_html(base + '/ldr.mp4', 'Rendered LDR video'),
+                   video_html(base + '/hdr.mp4', 'Rendered HDR video'),
+                   viewer_html(base, 'ldr'), viewer_html(base, 'hdr', exposure_ev=hdr_ev), download_html(base, links),
+                   plot_path(preset), str(editable), gr.update(visible=True), gr.update(visible=False),
+                   gr.update(interactive=True, value='Render LDR + HDR'))
+        except Exception as error:
+            message = getattr(error, 'message', str(error))
+            yield ('Render failed. Adjust the settings and try again.', gr.skip(), gr.skip(), gr.skip(),
+                   gr.skip(), gr.skip(), gr.skip(), gr.skip(), gr.update(visible=False),
+                   gr.update(visible=True, value=render_progress_html('Render failed', 0., time.perf_counter() - started, message)),
+                   gr.update(interactive=True, value='Render LDR + HDR'))
+            # The failure is already shown in the result area. Finish the stream
+            # normally so Gradio keeps the scene controls available for a retry.
+            return
 
     def choose_scene(scene):
-        preset = scene_preset(scene) if scene != 'custom' else scene_preset('bathroom')
+        preset = demo_scene_preset(scene) if scene != 'custom' else demo_scene_preset('bathroom')
         gallery_index = next((i for i, item in enumerate(SCENES) if item['id'] == scene), None)
         return (gr.update(visible=scene == 'custom'), preset.get('brightness_maximum', .5),
                 plot_path(preset) if scene != 'custom' else None,
-                *scene_preview(scene), scene_summary(scene), gr.update(selected_index=gallery_index),
-                str(outputs / 'previews' / scene / 'camera-path-editable.json') if scene != 'custom' else None)
+                *scene_preview(scene, outputs), scene_summary(scene), gr.update(selected_index=gallery_index),
+                str(outputs / 'previews' / scene / 'camera-path-editable.json') if scene != 'custom' else None,
+                gr.update(visible=True), gr.update(visible=False),
+                gr.update(interactive=True, value='Render LDR + HDR'))
 
     def select_thumbnail(event: gr.SelectData):
         return SCENES[int(event.index)]['id']
@@ -340,14 +479,14 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
         return gr.update(visible=is_fixed), gr.update(visible=not is_fixed)
 
     example = dict(version=1, convention='OpenCV C2W: +X right, +Y down, +Z forward',
-                   duration_seconds=4, fps=30, camera_intrinsics=dict(width=720, height=720, fx=864, fy=864),
+                   duration_seconds=8, fps=30, camera_intrinsics=dict(width=720, height=720, fx=864, fy=864),
                    keyframes=[dict(time_seconds=t, camera_to_world=[[1,0,0,0],[0,1,0,0],[0,0,1,z],[0,0,0,1]])
-                              for t,z in [(0,0),(2,1),(4,0)]])
-    initial = scene_preview('bathroom')
+                              for t,z in [(0,0),(4,1),(8,0)]])
+    initial = scene_preview('bathroom', outputs)
     thumbnails = [(str(ROOT / 'demo' / PREVIEWS[item['id']]['thumbnail']), item['label']) for item in SCENES]
     with gr.Blocks(
             title='HDR-GS Studio', css=(ROOT / 'demo/static/app.css').read_text(), theme=studio_theme(),
-            js="()=>{document.documentElement.classList.remove('dark');document.body.classList.remove('dark');}") as demo:
+            js=(ROOT / 'demo/static/studio.js').read_text()) as demo:
         gr.HTML('<header class="app-header"><div><h1>HDR-GS <span>NeurIPS 2024</span></h1>'
                 '<p>Novel-view synthesis &amp; interactive Gaussian exploration</p></div></header>', padding=False)
         with gr.Row(elem_id='scene-row', equal_height=True):
@@ -363,6 +502,7 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
             with gr.Row():
                 ply = gr.File(label='HDR-GS point_cloud.ply', file_types=['.ply'], type='filepath')
                 mapper = gr.File(label='Matching tone_mapper.pth', file_types=['.pth', '.pt'], type='filepath')
+            builtin_button = gr.Button('Use built-in scenes', size='sm', scale=0)
         with gr.Row(equal_height=False, elem_id='main-layout'):
             with gr.Column(scale=1, min_width=0, elem_id='control-panel'):
                 with gr.Column(min_width=0, elem_id='control-fields'):
@@ -373,9 +513,9 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                     gr.HTML('<div class="control-section-title">Camera</div>', padding=False)
                     motion = gr.Dropdown(list(MOTIONS), value='Spiral forward & backward', label='Camera path')
                     with gr.Group(elem_id='camera-preview'):
-                        trajectory_plot = gr.Plot(value=plot_path(scene_preset('bathroom')), show_label=False,
+                        trajectory_plot = gr.Plot(value=plot_path(demo_scene_preset('bathroom')), show_label=False,
                                                   elem_id='trajectory-plot')
-                        gr.HTML('<div class="trajectory-key">Solid: forward · Dashed: backward</div>', padding=False)
+                        gr.HTML('<div class="trajectory-key">X: right · Z: forward · −Y: up<br>Start-camera coordinates<br>Solid: forward · Dashed: backward</div>', padding=False)
                         with gr.Row(elem_classes='trajectory-actions'):
                             preview_button = gr.Button('Preview path', elem_id='preview-button', scale=1, min_width=80)
                             trajectory_download = gr.DownloadButton(
@@ -387,9 +527,9 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                             horizontal = gr.Slider(0, 2, 1, step=.05, label='Horizontal amplitude ×', min_width=80)
                             vertical = gr.Slider(0, 2, 1, step=.05, label='Vertical amplitude ×', min_width=80)
                         turns = gr.Slider(.5, 4, 2, step=.5, label='Spiral turns per leg')
-                        seconds = gr.Slider(2, 30, 16, step=1, label='Duration (seconds)')
+                        seconds = gr.Slider(2, 30, 8, step=1, label='Duration (seconds)')
                         with gr.Row():
-                            fps = gr.Dropdown([12, 24, 30, 60], value=60, label='FPS', min_width=70)
+                            fps = gr.Dropdown([12, 24, 30, 60], value=30, label='FPS', min_width=70)
                             size = gr.Dropdown([240, 480, 720, 960], value=720, label='Video long side (px)', min_width=110)
                     with gr.Accordion('LDR / HDR appearance', open=False, elem_id='brightness-options'):
                         brightness_mode = gr.Radio(['Project-page gradient', 'Fixed brightness'],
@@ -413,39 +553,45 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                 render_button = gr.Button('Render LDR + HDR', variant='primary', elem_id='render-button')
                 status = gr.Markdown(initial[5], elem_id='render-status')
             with gr.Column(scale=4, min_width=0, elem_id='workspace'):
-                with gr.Row(elem_id='video-row'):
-                    with gr.Column(scale=1, min_width=0):
-                        gr.HTML('<div class="panel-heading">LDR video <span>Learned tone mapper</span></div>', padding=False)
-                        ldr_video = gr.HTML(initial[0], padding=False, elem_id='ldr-video', elem_classes='media-html')
-                    with gr.Column(scale=1, min_width=0):
-                        gr.HTML('<div class="panel-heading">HDR video <span>Reinhard display</span></div>', padding=False)
-                        hdr_video = gr.HTML(initial[1], padding=False, elem_id='hdr-video', elem_classes='media-html')
-                with gr.Row(elem_id='point-row'):
-                    with gr.Column(scale=1, min_width=0):
-                        gr.HTML('<div class="panel-heading">LDR point cloud <span>Interactive</span></div>', padding=False)
-                        ldr_viewer = gr.HTML(initial[2], padding=False, elem_id='ldr-viewer', elem_classes='media-html')
-                    with gr.Column(scale=1, min_width=0):
-                        gr.HTML('<div class="panel-heading">HDR point cloud <span>Interactive</span></div>', padding=False)
-                        hdr_viewer = gr.HTML(initial[3], padding=False, elem_id='hdr-viewer', elem_classes='media-html')
-                gr.Markdown('Drag to orbit · Right-drag to pan · Scroll to zoom', elem_classes='helper')
-                with gr.Accordion('Downloads · videos & point clouds', open=False, elem_id='result-downloads'):
-                    gr.HTML('<p class="downloads-note">MP4 previews play on standard screens. '
-                            'Splat files are interactive previews. After rendering, you can also download '
-                            'the original model, tone mapper and an EXR frame with full HDR radiance.</p>', padding=False)
-                    downloads = gr.HTML(initial[4], padding=False)
+                render_progress = gr.HTML('', visible=False, padding=False, elem_id='render-progress')
+                with gr.Column(min_width=0, elem_id='preview-results') as preview_results:
+                    with gr.Row(elem_id='video-row'):
+                        with gr.Column(scale=1, min_width=0):
+                            gr.HTML('<div class="panel-heading">LDR video <span>Learned tone mapper</span></div>', padding=False)
+                            ldr_video = gr.HTML(initial[0], padding=False, elem_id='ldr-video', elem_classes='media-html')
+                        with gr.Column(scale=1, min_width=0):
+                            gr.HTML('<div class="panel-heading">HDR video <span>Reinhard display</span></div>', padding=False)
+                            hdr_video = gr.HTML(initial[1], padding=False, elem_id='hdr-video', elem_classes='media-html')
+                    with gr.Row(elem_id='point-row'):
+                        with gr.Column(scale=1, min_width=0):
+                            gr.HTML('<div class="panel-heading">LDR point cloud <span>Interactive</span></div>', padding=False)
+                            ldr_viewer = gr.HTML(initial[2], padding=False, elem_id='ldr-viewer', elem_classes='media-html')
+                        with gr.Column(scale=1, min_width=0):
+                            gr.HTML('<div class="panel-heading">HDR point cloud <span>Interactive</span></div>', padding=False)
+                            hdr_viewer = gr.HTML(initial[3], padding=False, elem_id='hdr-viewer', elem_classes='media-html')
+                    with gr.Accordion('Downloads · videos & point clouds', open=False, elem_id='result-downloads'):
+                        gr.HTML('<p class="downloads-note">MP4 previews play on standard screens. '
+                                'Splat files are interactive previews. After rendering, you can also download '
+                                'the original model, tone mapper and an EXR frame with full HDR radiance.</p>', padding=False)
+                        downloads = gr.HTML(initial[4], padding=False)
         camera_inputs = [scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high]
         gallery.select(select_thumbnail, outputs=[scene], queue=False, api_name=False, show_progress='hidden')
         upload_button.click(lambda: 'custom', outputs=[scene], queue=False, api_name=False, show_progress='hidden')
+        builtin_button.click(lambda: 'bathroom', outputs=[scene], queue=False, api_name=False, show_progress='hidden')
         scene.change(choose_scene, [scene], [uploads, high, trajectory_plot, ldr_video, hdr_video,
-                     ldr_viewer, hdr_viewer, downloads, status, summary, gallery, trajectory_download], show_progress='hidden')
+                     ldr_viewer, hdr_viewer, downloads, status, summary, gallery, trajectory_download,
+                     preview_results, render_progress, render_button], show_progress='hidden')
         brightness_mode.change(brightness_visibility, [brightness_mode], [fixed, gradient_controls],
                                queue=False, api_name=False, show_progress='hidden')
         preview_button.click(preview, camera_inputs, [trajectory_plot, trajectory_download, status],
                              api_name='preview_trajectory', show_progress='minimal')
-        render_button.click(render_pair, [scene, ply, mapper, custom, motion, forward, horizontal, vertical,
-            turns, seconds, fps, low, high, brightness_mode, fixed, size, hdr_ev],
-            [status, ldr_video, hdr_video, ldr_viewer, hdr_viewer, downloads, trajectory_plot, trajectory_download],
-            api_name='render_pair', concurrency_limit=1, show_progress='minimal')
+        render_outputs = [status, ldr_video, hdr_video, ldr_viewer, hdr_viewer, downloads,
+                          trajectory_plot, trajectory_download, preview_results, render_progress, render_button]
+        render_button.click(start_render, outputs=render_outputs, queue=False, api_name=False,
+                            show_progress='hidden').then(
+            render_pair, [scene, ply, mapper, custom, motion, forward, horizontal, vertical,
+                          turns, seconds, fps, low, high, brightness_mode, fixed, size, hdr_ev],
+            render_outputs, api_name='render_pair', concurrency_limit=1, show_progress='hidden')
     return demo
 
 

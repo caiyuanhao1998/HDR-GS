@@ -18,3 +18,5 @@ body.embedded .loading{background:#f5f5f5;color:#777}
 body.embedded .loading span{border-color:#dedede;border-top-color:#666}
 body.embedded #progress{background:#666}
 body.embedded :focus-visible{outline-color:#777}
+
+body.external-controls .controls{display:none!important}

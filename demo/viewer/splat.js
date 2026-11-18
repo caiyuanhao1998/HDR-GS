@@ -613,6 +613,8 @@ let viewMatrix = defaultViewMatrix;
 async function main() {
     let carousel = false;
     const params = new URLSearchParams(location.search);
+    const externalControls = params.get('controls') === 'external';
+    document.body.classList.toggle('external-controls', externalControls);
     const manifestResponse=await fetch('../assets/scenes.json?v=compact-v2');
     if(!manifestResponse.ok)throw new Error('Unable to load the scene list. Please retry.');
     const manifest=await manifestResponse.json();
@@ -641,6 +643,17 @@ async function main() {
     document.getElementById('exposure').value=scene.hdrDisplayExposureEV||0;
     document.getElementById('exposure-value').textContent=(scene.hdrDisplayExposureEV||0).toFixed(1)+' EV';
     document.getElementById('exposure').addEventListener('input',e=>{displayExposure=2**Number(e.target.value);document.getElementById('exposure-value').textContent=Number(e.target.value).toFixed(1)+' EV'});
+
+    window.addEventListener('message', event => {
+        if (!externalControls || event.origin !== location.origin || event.source !== window.parent ||
+            event.data?.kind !== 'hdr-gs-viewer-command') return;
+        if (event.data.action === 'reset') document.getElementById('reset').click();
+        if (event.data.action === 'exposure' && isHDR && Number.isFinite(event.data.value)) {
+            const input = document.getElementById('exposure');
+            input.value = Math.max(-8, Math.min(8, event.data.value));
+            input.dispatchEvent(new Event('input'));
+        }
+    });
 
     try {
         viewMatrix = JSON.parse(decodeURIComponent(location.hash.slice(1)));
@@ -821,6 +834,7 @@ async function main() {
     window.addEventListener("resize", resize);
     resize();
 
+    let sentReady = false;
     let uploadRevision = 0;
     worker.onmessage = (e) => {
         uploadRevision++;
@@ -1336,6 +1350,12 @@ async function main() {
         }
         }
         window.hdrViewerState={scene:sceneId,mode,vertexCount,viewMatrix:viewMatrix.slice(),displayExposure};
+        if (externalControls && vertexCount > 0 && !sentReady) {
+            sentReady = true;
+            const link = document.getElementById('download');
+            window.parent.postMessage({kind:'hdr-gs-viewer-ready', mode, download:link.href,
+                                       filename:link.download}, location.origin);
+        }
         const progress = (100 * vertexCount) / (splatData.length / rowLength);
         if (progress < 100) {
             document.getElementById("progress").style.width = progress + "%";

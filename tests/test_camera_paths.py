@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from utils.camera_paths import build_camera_path, export_keyframes, scene_preset, scene_registry
+from utils.camera_paths import build_camera_path, export_keyframes, retime_preset, scene_preset, scene_registry
 
 
 class CameraPathTests(unittest.TestCase):
@@ -18,6 +18,26 @@ class CameraPathTests(unittest.TestCase):
                 self.assertTrue((np.diff(depth[:481]) > 0).all())
                 self.assertTrue((np.diff(depth[480:]) < 0).all())
                 self.assertAlmostEqual(times[-1], 16 - 1 / 60)
+
+    def test_eight_second_playback_preserves_all_twelve_spatial_paths(self):
+        for scene in scene_registry():
+            preset = scene_preset(scene['id'])
+            original, _ = build_camera_path(preset)
+            faster = retime_preset(preset, 8, 30)
+            path, times = build_camera_path(faster)
+            self.assertEqual(path.shape, (240, 4, 4))
+            np.testing.assert_allclose(path, original[::4], atol=1e-10)
+            self.assertAlmostEqual(times[-1], 8 - 1 / 30)
+            self.assertEqual(preset['duration_seconds'], 16)
+
+    def test_custom_keyframe_retiming_preserves_poses(self):
+        original = scene_preset('bathroom')
+        reference, _ = build_camera_path(original)
+        custom = export_keyframes(original)
+        faster = retime_preset(custom, 8, 30)
+        path, _ = build_camera_path(faster)
+        np.testing.assert_allclose(path, reference[::4], atol=1e-10)
+        self.assertEqual(faster['keyframes'][-1]['time_seconds'], 8)
 
     def test_exported_sampled_camera_json_round_trips(self):
         preset = scene_preset('bathroom')
