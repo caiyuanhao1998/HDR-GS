@@ -49,32 +49,76 @@ def estimate_custom_preset(ply_path):
 
 
 def plot_path(preset):
+    """Compact camera frusta and travel arrows, shown in the starting camera frame."""
     poses, _ = build_camera_path(preset)
     centers = poses[:, :3, 3]
-    forward = poses[0, :3, 2]
-    peak = int(np.argmax((centers - centers[0]) @ forward))
+    peak = int(np.argmax((centers - centers[0]) @ poses[0, :3, 2]))
+
+    def display(points):
+        local = (np.asarray(points) - centers[0]) @ poses[0, :3, :3]
+        return local[:, [0, 2, 1]] * [1, 1, -1]  # right, forward, up
+
+    path = display(centers)
+    span = max(float(np.ptp(path, axis=0).max()), .1)
     figure = go.Figure()
     for points, label, color, dash in [
-            (centers[:peak + 1], 'Forward', '#292929', 'solid'),
-            (np.vstack([centers[peak:], centers[:1]]), 'Backward', '#9a9a9a', 'dash')]:
+            (path[:peak + 1], 'Forward', '#292929', 'solid'),
+            (np.vstack([path[peak:], path[:1]]), 'Backward', '#999999', 'dash')]:
         figure.add_trace(go.Scatter3d(
             x=points[:, 0], y=points[:, 1], z=points[:, 2], mode='lines', name=label,
-            line=dict(color=color, width=5, dash=dash)))
+            line=dict(color=color, width=4, dash=dash), hoverinfo='name'))
+
+    intr = preset['camera_intrinsics']
+    crop = float(preset.get('viewport_crop', 1))
+    half_x = intr['width'] / (2 * intr['fx'] * crop)
+    half_y = intr['height'] / (2 * intr['fy'] * crop)
+    corners = np.array([[0, 0, 0], [-half_x, -half_y, 1], [half_x, -half_y, 1],
+                        [half_x, half_y, 1], [-half_x, half_y, 1]]) * (span * .065)
+    edges = [(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (2, 3), (3, 4), (4, 1)]
+    bounds = [path]
+    samples = sorted(set(np.linspace(0, len(poses), 6, endpoint=False, dtype=int).tolist() + [peak]))
+    for index in samples:
+        world = corners @ poses[index, :3, :3].T + centers[index]
+        camera = display(world)
+        bounds.append(camera)
+        segments = []
+        for left, right in edges:
+            segments.extend([camera[left].tolist(), camera[right].tolist(), [None, None, None]])
+        coordinates = list(zip(*segments))
+        figure.add_trace(go.Scatter3d(
+            x=list(coordinates[0]), y=list(coordinates[1]), z=list(coordinates[2]),
+            mode='lines', line=dict(color='#333333' if index in [0, peak] else '#aaaaaa',
+                                    width=3 if index in [0, peak] else 1.5),
+            name='Start camera' if index == 0 else 'Camera {}'.format(index), hoverinfo='name'))
+
     for index, label, color, symbol in [(0, 'Start / finish', '#292929', 'circle'),
                                         (peak, 'Forward peak', '#777777', 'diamond')]:
-        point = centers[index]
+        point = path[index]
         figure.add_trace(go.Scatter3d(
             x=[point[0]], y=[point[1]], z=[point[2]], mode='markers', name=label,
-            marker=dict(size=5, color=color, symbol=symbol)))
-    axis = dict(backgroundcolor='#ffffff', gridcolor='#e5e5e5', zerolinecolor='#cccccc',
-                linecolor='#d9d9d9', color='#777777', showbackground=True)
+            marker=dict(size=3.5, color=color, symbol=symbol), hoverinfo='name'))
+    for index in [max(1, peak // 2), min(len(path) - 2, peak + (len(path) - peak) // 2)]:
+        direction = path[index + 1] - path[index - 1]
+        direction /= max(float(np.linalg.norm(direction)), 1e-8)
+        point = path[index]
+        figure.add_trace(go.Cone(
+            x=[point[0]], y=[point[1]], z=[point[2]], u=[direction[0]], v=[direction[1]],
+            w=[direction[2]], sizemode='absolute', sizeref=span * .06, anchor='tip',
+            colorscale=[[0, '#666666'], [1, '#666666']], showscale=False,
+            name='Travel direction', hoverinfo='name'))
+
+    bounds = np.concatenate(bounds)
+    center = (bounds.max(0) + bounds.min(0)) / 2
+    radius = max(float(np.ptp(bounds, axis=0).max()), .1) * .57
+    axes = [dict(visible=False, range=[float(value - radius), float(value + radius)]) for value in center]
     figure.update_layout(
-        height=280, margin=dict(l=0, r=0, b=0, t=8), paper_bgcolor='#ffffff',
-        plot_bgcolor='#ffffff', font=dict(family='Arial, sans-serif', size=10, color='#666666'),
-        legend=dict(orientation='h', y=1, x=0, bgcolor='#ffffff'),
-        scene=dict(aspectmode='data', bgcolor='#ffffff',
-                   xaxis=dict(axis, title='World X'), yaxis=dict(axis, title='World Y'),
-                   zaxis=dict(axis, title='World Z')))
+        height=180, showlegend=False, margin=dict(l=0, r=0, b=0, t=0),
+        paper_bgcolor='#fafafa', plot_bgcolor='#fafafa',
+        font=dict(family='Arial, sans-serif', size=10, color='#666666'),
+        hoverlabel=dict(bgcolor='#ffffff', bordercolor='#aaaaaa', font_color='#444444'),
+        scene=dict(aspectmode='cube', bgcolor='#fafafa', xaxis=axes[0], yaxis=axes[1], zaxis=axes[2],
+                   camera=dict(eye=dict(x=1.35, y=-.2, z=.8), up=dict(x=0, y=0, z=1))),
+        uirevision='compact-camera-preview')
     return figure
 
 
@@ -321,36 +365,51 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                 mapper = gr.File(label='Matching tone_mapper.pth', file_types=['.pth', '.pt'], type='filepath')
         with gr.Row(equal_height=False, elem_id='main-layout'):
             with gr.Column(scale=1, min_width=0, elem_id='control-panel'):
-                summary = gr.HTML(scene_summary('bathroom'), padding=False, elem_id='scene-summary')
-                scene = gr.Dropdown(
-                    choices=[(item['label'], item['id']) for item in SCENES] + [('Custom model', 'custom')],
-                    value='bathroom', label='Scene')
-                gr.HTML('<div class="control-section-title">Camera</div>', padding=False)
-                motion = gr.Dropdown(list(MOTIONS), value='Spiral forward & backward', label='Camera path')
-                forward = gr.Slider(.1, 2, 1, step=.05, label='Forward travel × scene preset')
-                with gr.Accordion('Motion settings', open=False, elem_id='camera-options'):
-                    with gr.Row():
-                        horizontal = gr.Slider(0, 2, 1, step=.05, label='Horizontal amplitude ×', min_width=80)
-                        vertical = gr.Slider(0, 2, 1, step=.05, label='Vertical amplitude ×', min_width=80)
-                    turns = gr.Slider(.5, 4, 2, step=.5, label='Spiral turns per leg')
-                seconds = gr.Slider(2, 30, 16, step=1, label='Duration (seconds)')
-                with gr.Row():
-                    fps = gr.Dropdown([12, 24, 30, 60], value=60, label='FPS', min_width=70)
-                    size = gr.Dropdown([240, 480, 720, 960], value=720, label='Video long side (px)', min_width=110)
-                with gr.Accordion('LDR / HDR appearance', open=False, elem_id='brightness-options'):
-                    brightness_mode = gr.Radio(['Project-page gradient', 'Fixed brightness'],
-                                               value='Project-page gradient', label='LDR brightness')
-                    fixed = gr.Slider(.01, .9, .35, step=.005, label='Fixed mean luminance', visible=False)
-                    with gr.Group() as gradient_controls:
-                        low = gr.Slider(.01, .5, .065, step=.005, label='Gradient minimum')
-                        high = gr.Slider(.1, .9, scene_preset('bathroom')['brightness_maximum'],
-                                         step=.005, label='Gradient peak')
-                    hdr_ev = gr.Slider(-4, 4, 0, step=.1, label='HDR display exposure (EV)')
-                    gr.Markdown('HDR uses one fixed Reinhard calibration for the full clip.', elem_classes='helper')
-                with gr.Accordion('Custom camera path', open=False, elem_id='custom-camera'):
-                    custom = gr.File(label='Upload camera JSON', file_types=['.json'], type='filepath')
-                    gr.Markdown('Overrides the camera controls. See **Camera JSON format** below the trajectory.',
-                                elem_classes='helper')
+                with gr.Column(min_width=0, elem_id='control-fields'):
+                    summary = gr.HTML(scene_summary('bathroom'), padding=False, elem_id='scene-summary')
+                    scene = gr.Dropdown(
+                        choices=[(item['label'], item['id']) for item in SCENES] + [('Custom model', 'custom')],
+                        value='bathroom', label='Scene', visible=False)
+                    gr.HTML('<div class="control-section-title">Camera</div>', padding=False)
+                    motion = gr.Dropdown(list(MOTIONS), value='Spiral forward & backward', label='Camera path')
+                    with gr.Group(elem_id='camera-preview'):
+                        trajectory_plot = gr.Plot(value=plot_path(scene_preset('bathroom')), show_label=False,
+                                                  elem_id='trajectory-plot')
+                        gr.HTML('<div class="trajectory-key">Solid: forward · Dashed: backward</div>', padding=False)
+                        with gr.Row(elem_classes='trajectory-actions'):
+                            preview_button = gr.Button('Preview path', elem_id='preview-button', scale=1, min_width=80)
+                            trajectory_download = gr.DownloadButton(
+                                'Camera JSON', value=str(outputs / 'previews/bathroom/camera-path-editable.json'),
+                                elem_id='download-camera', scale=1, min_width=80)
+                    forward = gr.Slider(.1, 2, 1, step=.05, label='Forward travel × scene preset')
+                    with gr.Accordion('Camera settings', open=False, elem_id='camera-options'):
+                        with gr.Row():
+                            horizontal = gr.Slider(0, 2, 1, step=.05, label='Horizontal amplitude ×', min_width=80)
+                            vertical = gr.Slider(0, 2, 1, step=.05, label='Vertical amplitude ×', min_width=80)
+                        turns = gr.Slider(.5, 4, 2, step=.5, label='Spiral turns per leg')
+                        seconds = gr.Slider(2, 30, 16, step=1, label='Duration (seconds)')
+                        with gr.Row():
+                            fps = gr.Dropdown([12, 24, 30, 60], value=60, label='FPS', min_width=70)
+                            size = gr.Dropdown([240, 480, 720, 960], value=720, label='Video long side (px)', min_width=110)
+                    with gr.Accordion('LDR / HDR appearance', open=False, elem_id='brightness-options'):
+                        brightness_mode = gr.Radio(['Project-page gradient', 'Fixed brightness'],
+                                                   value='Project-page gradient', label='LDR brightness')
+                        fixed = gr.Slider(.01, .9, .35, step=.005, label='Fixed mean luminance', visible=False)
+                        with gr.Group() as gradient_controls:
+                            low = gr.Slider(.01, .5, .065, step=.005, label='Gradient minimum')
+                            high = gr.Slider(.1, .9, scene_preset('bathroom')['brightness_maximum'],
+                                             step=.005, label='Gradient peak')
+                        hdr_ev = gr.Slider(-4, 4, 0, step=.1, label='HDR display exposure (EV)')
+                        gr.Markdown('HDR uses one fixed Reinhard calibration for the full clip.', elem_classes='helper')
+                    with gr.Accordion('Custom camera path', open=False, elem_id='custom-camera'):
+                        custom = gr.File(label='Upload camera JSON', file_types=['.json'], type='filepath')
+                        gr.Markdown('Overrides the camera controls. Move forward first, then return to the starting pose.',
+                                    elem_classes='helper')
+                        with gr.Accordion('Camera JSON format', open=False):
+                            gr.Markdown('OpenCV camera-to-world: **+X right, +Y down, +Z forward**. '
+                                        'The last keyframe closes the loop.', elem_classes='helper')
+                            gr.Code(json.dumps(example, indent=2), language='json', label='Editable trajectory format',
+                                    elem_classes='format-code')
                 render_button = gr.Button('Render LDR + HDR', variant='primary', elem_id='render-button')
                 status = gr.Markdown(initial[5], elem_id='render-status')
             with gr.Column(scale=4, min_width=0, elem_id='workspace'):
@@ -369,28 +428,11 @@ def make_demo(renderer_python, models_root, outputs, gpu_id):
                         gr.HTML('<div class="panel-heading">HDR point cloud <span>Interactive</span></div>', padding=False)
                         hdr_viewer = gr.HTML(initial[3], padding=False, elem_id='hdr-viewer', elem_classes='media-html')
                 gr.Markdown('Drag to orbit · Right-drag to pan · Scroll to zoom', elem_classes='helper')
-                with gr.Tabs(elem_classes='workspace-tabs'):
-                    with gr.Tab('Trajectory'):
-                        trajectory_plot = gr.Plot(value=plot_path(scene_preset('bathroom')), show_label=False,
-                                                  elem_id='trajectory-plot')
-                        with gr.Row(elem_classes='trajectory-actions'):
-                            preview_button = gr.Button('Preview trajectory', elem_id='preview-button', scale=0)
-                            trajectory_download = gr.DownloadButton(
-                                'Download camera JSON', value=str(outputs / 'previews/bathroom/camera-path-editable.json'),
-                                elem_id='download-camera', scale=0)
-                        gr.Markdown('Forward first, then back to the start. Spiral rotation keeps its direction.',
-                                    elem_classes='helper')
-                        with gr.Accordion('Camera JSON format', open=False):
-                            gr.Markdown('OpenCV camera-to-world matrices: **+X right, +Y down, +Z forward**. '
-                                        'Begin at 0 seconds, move forward, then return to the starting pose. '
-                                        'The final keyframe closes the loop.', elem_classes='helper')
-                            gr.Code(json.dumps(example, indent=2), language='json', label='Editable trajectory format',
-                                    elem_classes='format-code')
-                    with gr.Tab('Downloads'):
-                        gr.HTML('<p class="downloads-note">MP4 previews play on standard screens. '
-                                'Splat files are interactive previews. After rendering, you can also download '
-                                'the original model, tone mapper and an EXR frame with full HDR radiance.</p>', padding=False)
-                        downloads = gr.HTML(initial[4], padding=False)
+                with gr.Accordion('Downloads · videos & point clouds', open=False, elem_id='result-downloads'):
+                    gr.HTML('<p class="downloads-note">MP4 previews play on standard screens. '
+                            'Splat files are interactive previews. After rendering, you can also download '
+                            'the original model, tone mapper and an EXR frame with full HDR radiance.</p>', padding=False)
+                    downloads = gr.HTML(initial[4], padding=False)
         camera_inputs = [scene, ply, custom, motion, forward, horizontal, vertical, turns, seconds, fps, low, high]
         gallery.select(select_thumbnail, outputs=[scene], queue=False, api_name=False, show_progress='hidden')
         upload_button.click(lambda: 'custom', outputs=[scene], queue=False, api_name=False, show_progress='hidden')
