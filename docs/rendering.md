@@ -33,6 +33,6 @@ Custom trajectory JSON uses OpenCV camera-to-world matrices (`+X right, +Y down,
 
 ### Reusing Gaussian previews
 
-The trained Gaussian geometry is loaded for inference; rendering does not retrain or reconstruct the scene. Browser point clouds are organized in the [HF Model repository](https://huggingface.co/CaiYuanhao/HDR-GS/tree/main/visualizations), while videos and camera data remain in the dataset.
+The trained Gaussian geometry is loaded for inference; rendering does not retrain or reconstruct the scene. Browser point clouds, videos and camera data are organized in the [HF Dataset visualizations directory](https://huggingface.co/datasets/CaiYuanhao/HDR-GS/tree/main/visualizations).
 
 Point-cloud exports use a content-addressed `.viewer-cache` beside the output directories; `--viewer_cache` selects another location. The HDR geometry/radiance export is reused for the same source model, reference camera and point budget. LDR previews share that geometry and only recompute learned tone-mapper colors when brightness or the tone mapper changes. Repeating the same brightness reuses those colors too. Changing video duration, frame rate or the rest of the camera path does not invalidate these preview files when the reference camera is unchanged. HDR display calibration/exposure metadata is updated independently of cached Gaussian bytes.
