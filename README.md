@@ -175,8 +175,6 @@ This downloads `synthetic/` and `real/` directly into `data_hdr/`, with the foll
 
 &nbsp;
 
-The [refinement guide](docs/refinement.md) shows how to reproduce the selected weights using one training command and a scene YAML.
-
 Precomputed videos, interactive Gaussian previews, camera paths and HDR samples are organized in the dataset’s [visualizations folder](https://huggingface.co/datasets/CaiYuanhao/HDR-GS/tree/main/visualizations).
 
 ## 3. Testing
@@ -258,14 +256,14 @@ Then the ```--load_path``` should be ``` "output/mlp/bathroom/exp-time/point_clo
 
 Testing also saves `render_*_hdr_preview.png` beside the original HDR EXR files, so ordinary image viewers can display the results. Training losses and evaluation metrics retain the original pipeline.
 
-References: [OpenCV HDR imaging](https://docs.opencv.org/4.x/d6/df5/group__photo__hdr.html), [Reinhard et al., Photographic Tone Reproduction for Digital Images](https://www-old.cs.utah.edu/docs/techreports/2002/pdf/UUCS-02-001.pdf).
-
-
 ## 4. Training
 We provide training logs for your convenience to debug. Please download them from the [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt?usp=drive_link) or [Baidu Disk](https://pan.baidu.com/s/17iO_iOHyEyrmdZYgAGK7Sw?pwd=cyh2) (code: `cyh2`).
 
 
-You can run the `.sh` file by
+### Base training
+
+The batch scripts train a base HDR-GS model for each scene from its training data for 30,000 iterations.
+
 ```shell
 # For synthetic scenes
 bash train_synthetic.sh
@@ -316,6 +314,33 @@ python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn
 New checkpoints include the learned RGB tone mappers and optimizer state. Use `--test_only --start_checkpoint path/to/chkpnt1000.pth` to evaluate a new checkpoint directly. Legacy checkpoints need `--load_path` pointing to the matching saved scene model because they do not contain tone-mapper weights.
 
 Run the regression checks in the activated environment with `python -m unittest discover -s tests -v`. The checkpoint tests require a CUDA GPU and the compiled extensions.
+
+### Reproduce the released checkpoints
+
+The checkpoints in [Testing](#3-testing) were produced with the scene-specific stages in [config/refinement](config/refinement).
+
+For Bear, Chair, Desk, Dining Room, Dog, Sponza and the four real scenes, run the matching base-training command first, then pass its saved `point_cloud/iteration_30000` directory to `train_refinement.py`. The Bear example uses `--model_path` to set a fixed path for the base model.
+
+```shell
+python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn --model_path output/base/bear
+python3 train_refinement.py --config config/refinement/bear.yaml \
+  --load_path output/base/bear/point_cloud/iteration_30000 \
+  --output output/refined/bear --gpu_id 0 --evaluate
+```
+
+Bathroom and Sofa refine the original published checkpoints. From the [pinned Model revision](https://huggingface.co/CaiYuanhao/HDR-GS/tree/03d0db0771d095a997ec764fc23eb1f2a2bce806), download the `point_cloud.ply` and `tone_mapper.pth` in `bathroom/` and `sofa_2/` to `pretrained_weights_original/bathroom/` and `pretrained_weights_original/sofa_2/`, respectively.
+
+```shell
+python3 train_refinement.py --config config/refinement/bathroom.yaml \
+  --load_path pretrained_weights_original/bathroom \
+  --output output/refined/bathroom --gpu_id 0 --evaluate
+
+python3 train_refinement.py --config config/refinement/sofa.yaml \
+  --load_path pretrained_weights_original/sofa_2 \
+  --output output/refined/sofa --gpu_id 0 --evaluate
+```
+
+The final stage saves `point_cloud.ply` and `tone_mapper.pth` in its `stage_XX/weights/` directory. The evaluation writes `benchmark.json` under the specified output directory. Each scene YAML records the initialization hashes and reference metrics. The [refinement guide](docs/refinement.md) describes these settings. Retraining the base model or changing the CUDA environment can affect the final metrics. Use the [evaluation commands](#evaluation) to measure the downloaded checkpoints directly.
 
 &nbsp;
 
