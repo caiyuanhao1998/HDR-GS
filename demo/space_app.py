@@ -23,6 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from huggingface_hub import hf_hub_download
 
 from app import ROOT, SCENES, make_demo
+from usage import UsageCounter
 
 MODEL_REPOSITORY = 'CaiYuanhao/HDR-GS'
 MODEL_REVISION = '2f75df0f3ff298612ee22ed26eac86395658f8a8'
@@ -136,8 +137,14 @@ def main():
     storage = Path(os.environ.get('HDRGS_SPACE_CACHE', '/tmp/hdr-gs-studio'))
     outputs = storage / 'results'
     backend = HostedRenderer(storage)
-    demo = make_demo(Path(sys.executable), storage / 'models', outputs, '0', hosted=backend)
+    usage = UsageCounter('/mnt/hdr-gs-usage')
+    demo = make_demo(Path(sys.executable), storage / 'models', outputs, '0', hosted=backend, usage=usage)
     assets = FastAPI()
+
+    @assets.get('/api/usage')
+    def usage_summary():
+        return usage.summary() or {'available': False}
+
     assets.mount('/results', StaticFiles(directory=str(outputs)), name='results')
     assets.mount('/studio-assets', StaticFiles(directory=str(ROOT / 'demo/static')), name='studio-assets')
     # Gradio.launch registers the ZeroGPU worker before the viewer routes are added.

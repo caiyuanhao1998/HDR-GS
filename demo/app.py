@@ -312,7 +312,7 @@ def scene_preview(scene, outputs=None):
             viewer_html(base, 'hdr', item['assetBase'], item.get('hdrDisplayExposureEV', 0.)), downloads, note)
 
 
-def make_demo(renderer_python, models_root, outputs, gpu_id, hosted=None):
+def make_demo(renderer_python, models_root, outputs, gpu_id, hosted=None, usage=None):
     outputs.mkdir(parents=True, exist_ok=True)
     prepare_previews(outputs)
 
@@ -465,12 +465,15 @@ def make_demo(renderer_python, models_root, outputs, gpu_id, hosted=None):
                      ('Raw HDR frame', 'frames_hdr/{:06d}.exr'.format(len(build_camera_path(preset)[0]) // 2))]
             if hosted is None:
                 links[4:4] = [('Original point cloud', 'point_cloud.ply'), ('Tone mapper', 'tone_mapper.pth')]
-            yield ('Render complete in {:.1f} s. Videos and point clouds are ready.'.format(elapsed),
+            result = ('Render complete in {:.1f} s. Videos and point clouds are ready.'.format(elapsed),
                    video_html(base + '/ldr.mp4', 'Rendered LDR video'),
                    video_html(base + '/hdr.mp4', 'Rendered HDR video'),
                    viewer_html(base, 'ldr'), viewer_html(base, 'hdr', exposure_ev=hdr_ev), download_html(base, links),
                    plot_path(preset), str(editable), gr.update(visible=True), gr.update(visible=False),
                    gr.update(interactive=True, value='Render LDR + HDR'))
+            if usage is not None:
+                usage.record(job)
+            yield result
         except Exception as error:
             message = getattr(error, 'message', str(error))
             yield ('Render failed. Adjust the settings and try again.', gr.skip(), gr.skip(), gr.skip(),
@@ -502,13 +505,20 @@ def make_demo(renderer_python, models_root, outputs, gpu_id, hosted=None):
                    duration_seconds=8, fps=30, camera_intrinsics=dict(width=720, height=720, fx=864, fy=864),
                    keyframes=[dict(time_seconds=t, camera_to_world=[[1,0,0,0],[0,1,0,0],[0,0,1,z],[0,0,0,1]])
                               for t,z in [(0,0),(4,1),(8,0)]])
+    def header_html():
+        counts = usage.badges() if usage is not None else ''
+        return ('<header class="app-header"><div><h1>HDR-GS <span>NeurIPS 2024</span></h1>'
+                '<p>Novel-view synthesis &amp; interactive Gaussian exploration</p></div>'
+                + counts + '</header>')
+
     initial = scene_preview('bathroom', outputs)
     thumbnails = [(str(ROOT / 'demo' / PREVIEWS[item['id']]['thumbnail']), item['label']) for item in SCENES]
     with gr.Blocks(
             title='HDR-GS Studio', css=(ROOT / 'demo/static/app.css').read_text(), theme=studio_theme(),
             js=(ROOT / 'demo/static/studio.js').read_text()) as demo:
-        gr.HTML('<header class="app-header"><div><h1>HDR-GS <span>NeurIPS 2024</span></h1>'
-                '<p>Novel-view synthesis &amp; interactive Gaussian exploration</p></div></header>', padding=False)
+        header = gr.HTML(header_html(), padding=False)
+        if usage is not None:
+            demo.load(header_html, outputs=[header], queue=False, api_name=False, show_progress='hidden')
         with gr.Row(elem_id='scene-row', equal_height=True):
             with gr.Column(scale=0, min_width=100, elem_id='scene-toolbar'):
                 gr.HTML('<div class="scene-heading">Choose a scene</div>', padding=False)
@@ -608,11 +618,13 @@ def make_demo(renderer_python, models_root, outputs, gpu_id, hosted=None):
                              api_name='preview_trajectory', show_progress='minimal')
         render_outputs = [status, ldr_video, hdr_video, ldr_viewer, hdr_viewer, downloads,
                           trajectory_plot, trajectory_download, preview_results, render_progress, render_button]
-        render_button.click(start_render, outputs=render_outputs, queue=False, api_name=False,
-                            show_progress='hidden').then(
+        render = render_button.click(start_render, outputs=render_outputs, queue=False, api_name=False,
+                                     show_progress='hidden').then(
             render_pair, [scene, ply, mapper, custom, motion, forward, horizontal, vertical,
                           turns, seconds, fps, low, high, brightness_mode, fixed, size, hdr_ev],
             render_outputs, api_name='render_pair', concurrency_limit=1, show_progress='hidden')
+        if usage is not None:
+            render.then(header_html, outputs=[header], queue=False, api_name=False, show_progress='hidden')
     return demo
 
 

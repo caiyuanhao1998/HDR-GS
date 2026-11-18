@@ -69,3 +69,20 @@ footer{display:none!important}.gradio-container a{color:#4b4b4b}.gradio-containe
 
 .gradio-container:has(#render-button:disabled) #scene-gallery,.gradio-container:has(#render-button:disabled) #upload-model{pointer-events:none;opacity:.65}
 #render-progress .html-container.pending{opacity:1!important}
+
+.app-header:has(.usage-counts) { flex-wrap: wrap; }
+.usage-counts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.usage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid #dedede;
+    border-radius: 999px;
+    background: #fafafa;
+    color: #606060;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.usage-chip b { color: #171717; font-weight: 600; font-variant-numeric: tabular-nums; }
