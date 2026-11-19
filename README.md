@@ -241,8 +241,6 @@ To evaluate a checkpoint you trained, use its saved checkpoint directory as `--l
 Testing also saves `render_*_hdr_preview.png` beside the original HDR EXR files, so ordinary image viewers can display the results. Training losses and evaluation metrics retain the original pipeline.
 
 ## 4. Training
-We provide training logs for your convenience to debug. Please download them from the [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt?usp=drive_link) or [Baidu Disk](https://pan.baidu.com/s/17iO_iOHyEyrmdZYgAGK7Sw?pwd=cyh2) (code: `cyh2`).
-
 
 Train each scene using the corresponding YAML.
 
@@ -263,6 +261,8 @@ python3 train_real.py --config config/computer.yaml --eval --gpu_id 0
 python3 train_real.py --config config/box.yaml --eval --gpu_id 0
 python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0
 ```
+
+To help you debug your training runs, we provide the original logs for all 12 scenes on [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt) and [Baidu Disk (access code cyh2)](https://pan.baidu.com/s/17iO_iOHyEyrmdZYgAGK7Sw?pwd=cyh2).
 
 &nbsp;
 
