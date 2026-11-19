@@ -262,7 +262,7 @@ python3 train_real.py --config config/box.yaml --eval --gpu_id 0
 python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0
 ```
 
-To help you debug, we provide the original logs for all 12 scenes on [Google Drive](https://drive.google.com/drive/folders/1lI2nZ51pcW12xaiNFJjvoaHeuawj1dRt).
+To help you debug, we provide the training logs for all 12 scenes on [Google Drive](https://drive.google.com/drive/folders/1d2ESaVl5f6MB-UdPFnFbBNB1dxooRy6a?usp=sharing).
 
 &nbsp;
 
