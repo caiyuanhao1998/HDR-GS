@@ -182,10 +182,12 @@ Precomputed videos, interactive Gaussian previews, camera paths and HDR samples 
 From the repository root, download all 12 scene checkpoints from [Hugging Face Model](https://huggingface.co/CaiYuanhao/HDR-GS) into `pretrained_weights/` using the environment installed in Section 1.
 
 ```shell
-conda run --no-capture-output -n hdr_gs_demo hf download CaiYuanhao/HDR-GS --include "synthetic/**" --include "real/**" --local-dir pretrained_weights
+conda run --no-capture-output -n hdr_gs_demo hf download CaiYuanhao/HDR-GS --include "config.json" --include "synthetic/**" --include "real/**" --local-dir pretrained_weights
 ```
 
 The download puts each scene's `point_cloud.ply` and `tone_mapper.pth` in `pretrained_weights/synthetic/<scene>/` or `pretrained_weights/real/<scene>/`. The Bathroom and Sofa directories are `pretrained_weights/synthetic/bathroom/` and `pretrained_weights/synthetic/sofa/`.
+
+The root `config.json` indexes the scene checkpoints and is used by Hugging Face for [download statistics](https://huggingface.co/docs/hub/models-download-stats).
 
 ### Gradio demo
 
