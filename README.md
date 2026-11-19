@@ -214,26 +214,26 @@ python render_hdr.py --scene bathroom --model_path pretrained_weights/synthetic/
 
 ### Evaluation
 
-Download the scene data in Section 2, then use the matching evaluation command. The `--data_device cpu` option keeps the reference images in host memory to reduce GPU memory use.
+Download the scene data in Section 2, then use the matching evaluation command.
 
 ```shell
 # For synthetic scenes
-python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/bathroom --data_device cpu --test_only
-python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/bear --data_device cpu --test_only
-python3 train_synthetic.py --config config/chair.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/chair --data_device cpu --test_only
-python3 train_synthetic.py --config config/desk.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/desk --data_device cpu --test_only
-python3 train_synthetic.py --config config/diningroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/diningroom --data_device cpu --test_only
-python3 train_synthetic.py --config config/dog.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/dog --data_device cpu --test_only
-python3 train_synthetic.py --config config/sofa.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/sofa --data_device cpu --test_only
-python3 train_synthetic.py --config config/sponza.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/sponza --data_device cpu --test_only
+python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/bathroom --test_only
+python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/bear --test_only
+python3 train_synthetic.py --config config/chair.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/chair --test_only
+python3 train_synthetic.py --config config/desk.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/desk --test_only
+python3 train_synthetic.py --config config/diningroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/diningroom --test_only
+python3 train_synthetic.py --config config/dog.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/dog --test_only
+python3 train_synthetic.py --config config/sofa.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/sofa --test_only
+python3 train_synthetic.py --config config/sponza.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/sponza --test_only
 ```
 
 ```shell
 # For real scenes
-python3 train_real.py --config config/flower.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/flower --data_device cpu --test_only
-python3 train_real.py --config config/computer.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/computer --data_device cpu --test_only
-python3 train_real.py --config config/box.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/box --data_device cpu --test_only
-python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/luckycat --data_device cpu --test_only
+python3 train_real.py --config config/flower.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/flower --test_only
+python3 train_real.py --config config/computer.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/computer --test_only
+python3 train_real.py --config config/box.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/box --test_only
+python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/luckycat --test_only
 ```
 
 To evaluate a checkpoint you trained, use its saved checkpoint directory as `--load_path` in the matching command above. The directory contains `point_cloud.ply` and `tone_mapper.pth`.
@@ -242,7 +242,7 @@ Testing also saves `render_*_hdr_preview.png` beside the original HDR EXR files,
 
 ## 4. Training
 
-Train each scene using the corresponding YAML. Add `--data_device cpu` when training on a GPU with limited free memory.
+Train each scene using the corresponding YAML.
 
 ```shell
 # For synthetic scenes
