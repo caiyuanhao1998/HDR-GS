@@ -3,7 +3,7 @@
 Render an LDR video with the learned tone mapper. Without `--brightness`, brightness increases on the forward leg and decreases on the backward leg, using the scene-specific project-page limits:
 
 ```shell
-python render_ldr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom --gpu_id 0
+python render_ldr.py --scene bathroom --model_path pretrained_weights/synthetic/bathroom --output output/videos/bathroom --gpu_id 0
 ```
 
 Add `--brightness 0.35` for fixed mean luminance instead of a gradient. Brightness is a target in `(0, 1)`, achieved by solving the learned tone mapper's exposure, not by multiplying rendered pixels.
@@ -11,7 +11,7 @@ Add `--brightness 0.35` for fixed mean luminance instead of a gradient. Brightne
 Render the HDR video along the same camera path:
 
 ```shell
-python render_hdr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom --gpu_id 0
+python render_hdr.py --scene bathroom --model_path pretrained_weights/synthetic/bathroom --output output/videos/bathroom --gpu_id 0
 ```
 
 The output contains `ldr.mp4`, `hdr.mp4`, corresponding posters, interactive LDR/HDR Gaussian previews, `tonemap.json`, camera poses and render metadata. Open the generated `viewer/index.html?scene=render&mode=ldr` or `mode=hdr` through a local HTTP server. The HDR video uses OpenCV/NumPy extended Reinhard tone mapping and an sRGB display transform, with one calibration for the whole sequence. Photomatix and Luminance HDR are not required. The MP4 is an SDR visualization for ordinary displays; `frames_hdr/*.exr` preserves original float32 HDR radiance. Add `--save_exr` to retain every HDR frame; otherwise three representative EXRs are saved.

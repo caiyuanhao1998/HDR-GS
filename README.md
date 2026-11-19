@@ -179,13 +179,13 @@ Precomputed videos, interactive Gaussian previews, camera paths and HDR samples 
 
 ## 3. Testing
 
-Download the pretrained checkpoints for all 12 scenes to `pretrained_weights/` from [Hugging Face Model](https://huggingface.co/CaiYuanhao/HDR-GS). Run this command from the repository root with Git LFS enabled.
+From the repository root, download all 12 scene checkpoints from [Hugging Face Model](https://huggingface.co/CaiYuanhao/HDR-GS) into `pretrained_weights/` using the environment installed in Section 1.
 
 ```shell
-git clone https://huggingface.co/CaiYuanhao/HDR-GS pretrained_weights
+conda run --no-capture-output -n hdr_gs_demo hf download CaiYuanhao/HDR-GS --include "synthetic/**" --include "real/**" --local-dir pretrained_weights
 ```
 
-Each scene has a `point_cloud.ply` and its matching `tone_mapper.pth`. Bathroom and Sofa are under `bathroom/` and `sofa_2/`. The remaining checkpoints are grouped under `refined-2026-11-18/synthetic/` and `refined-2026-11-18/real/`.
+Each scene contains `point_cloud.ply` and `tone_mapper.pth` under `pretrained_weights/synthetic/<scene>/` or `pretrained_weights/real/<scene>/`.
 
 ### Gradio demo
 
@@ -200,14 +200,14 @@ conda run --no-capture-output -n hdr_gs_demo python demo/app.py --renderer-pytho
 ### LDR rendering
 
 ```shell
-python render_ldr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom --gpu_id 0
-python render_ldr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom_fixed --gpu_id 0 --brightness 0.35
+python render_ldr.py --scene bathroom --model_path pretrained_weights/synthetic/bathroom --output output/videos/bathroom --gpu_id 0
+python render_ldr.py --scene bathroom --model_path pretrained_weights/synthetic/bathroom --output output/videos/bathroom_fixed --gpu_id 0 --brightness 0.35
 ```
 
 ### HDR rendering
 
 ```shell
-python render_hdr.py --scene bathroom --model_path pretrained_weights/bathroom --output output/videos/bathroom --gpu_id 0
+python render_hdr.py --scene bathroom --model_path pretrained_weights/synthetic/bathroom --output output/videos/bathroom --gpu_id 0
 ```
 
 ### Evaluation
@@ -216,22 +216,22 @@ Download the scene data in Section 2, then use the matching evaluation command.
 
 ```shell
 # For synthetic scenes
-python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/bathroom --test_only
-python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/refined-2026-11-18/synthetic/bear --test_only
-python3 train_synthetic.py --config config/chair.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/refined-2026-11-18/synthetic/chair --test_only
-python3 train_synthetic.py --config config/desk.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/refined-2026-11-18/synthetic/desk --test_only
-python3 train_synthetic.py --config config/diningroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/refined-2026-11-18/synthetic/diningroom --test_only
-python3 train_synthetic.py --config config/dog.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/refined-2026-11-18/synthetic/dog --test_only
-python3 train_synthetic.py --config config/sofa.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/sofa_2 --test_only
-python3 train_synthetic.py --config config/sponza.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/refined-2026-11-18/synthetic/sponza --test_only
+python3 train_synthetic.py --config config/bathroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/bathroom --test_only
+python3 train_synthetic.py --config config/bear.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/bear --test_only
+python3 train_synthetic.py --config config/chair.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/chair --test_only
+python3 train_synthetic.py --config config/desk.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/desk --test_only
+python3 train_synthetic.py --config config/diningroom.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/diningroom --test_only
+python3 train_synthetic.py --config config/dog.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/dog --test_only
+python3 train_synthetic.py --config config/sofa.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/sofa --test_only
+python3 train_synthetic.py --config config/sponza.yaml --eval --gpu_id 0 --syn --load_path pretrained_weights/synthetic/sponza --test_only
 ```
 
 ```shell
 # For real scenes
-python3 train_real.py --config config/flower.yaml --eval --gpu_id 0 --load_path pretrained_weights/refined-2026-11-18/real/flower --test_only
-python3 train_real.py --config config/computer.yaml --eval --gpu_id 0 --load_path pretrained_weights/refined-2026-11-18/real/computer --test_only
-python3 train_real.py --config config/box.yaml --eval --gpu_id 0 --load_path pretrained_weights/refined-2026-11-18/real/box --test_only
-python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0 --load_path pretrained_weights/refined-2026-11-18/real/luckycat --test_only
+python3 train_real.py --config config/flower.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/flower --test_only
+python3 train_real.py --config config/computer.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/computer --test_only
+python3 train_real.py --config config/box.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/box --test_only
+python3 train_real.py --config config/luckycat.yaml --eval --gpu_id 0 --load_path pretrained_weights/real/luckycat --test_only
 ```
 
 To evaluate a checkpoint you trained, use its saved checkpoint directory as `--load_path` in the matching command above. The directory contains `point_cloud.ply` and `tone_mapper.pth`.
