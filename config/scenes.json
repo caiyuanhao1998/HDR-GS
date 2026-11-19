@@ -5,7 +5,7 @@
     "group": "synthetic",
     "model_directory": "bathroom",
     "trajectory": "bathroom-project-page.json",
-    "checkpoint_directory": "bathroom"
+    "checkpoint_directory": "synthetic/bathroom"
   },
   {
     "id": "bear",
@@ -13,7 +13,8 @@
     "group": "synthetic",
     "model_directory": "bear",
     "trajectory": "bear-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/synthetic/bear"
+    "checkpoint_directory": "synthetic/bear",
+    "legacy_checkpoint_directory": "refined-2026-11-18/synthetic/bear"
   },
   {
     "id": "chair",
@@ -21,7 +22,8 @@
     "group": "synthetic",
     "model_directory": "chair",
     "trajectory": "chair-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/synthetic/chair"
+    "checkpoint_directory": "synthetic/chair",
+    "legacy_checkpoint_directory": "refined-2026-11-18/synthetic/chair"
   },
   {
     "id": "desk",
@@ -29,7 +31,8 @@
     "group": "synthetic",
     "model_directory": "desk",
     "trajectory": "desk-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/synthetic/desk"
+    "checkpoint_directory": "synthetic/desk",
+    "legacy_checkpoint_directory": "refined-2026-11-18/synthetic/desk"
   },
   {
     "id": "diningroom",
@@ -37,7 +40,8 @@
     "group": "synthetic",
     "model_directory": "diningroom",
     "trajectory": "diningroom-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/synthetic/diningroom"
+    "checkpoint_directory": "synthetic/diningroom",
+    "legacy_checkpoint_directory": "refined-2026-11-18/synthetic/diningroom"
   },
   {
     "id": "dog",
@@ -45,7 +49,8 @@
     "group": "synthetic",
     "model_directory": "dog",
     "trajectory": "dog-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/synthetic/dog"
+    "checkpoint_directory": "synthetic/dog",
+    "legacy_checkpoint_directory": "refined-2026-11-18/synthetic/dog"
   },
   {
     "id": "sofa",
@@ -53,7 +58,7 @@
     "group": "synthetic",
     "model_directory": "sofa_2",
     "trajectory": "sofa-project-page.json",
-    "checkpoint_directory": "sofa_2"
+    "checkpoint_directory": "synthetic/sofa"
   },
   {
     "id": "sponza",
@@ -61,7 +66,8 @@
     "group": "synthetic",
     "model_directory": "sponza",
     "trajectory": "sponza-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/synthetic/sponza"
+    "checkpoint_directory": "synthetic/sponza",
+    "legacy_checkpoint_directory": "refined-2026-11-18/synthetic/sponza"
   },
   {
     "id": "flower",
@@ -69,7 +75,8 @@
     "group": "real",
     "model_directory": "flower",
     "trajectory": "flower-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/real/flower"
+    "checkpoint_directory": "real/flower",
+    "legacy_checkpoint_directory": "refined-2026-11-18/real/flower"
   },
   {
     "id": "computer",
@@ -77,7 +84,8 @@
     "group": "real",
     "model_directory": "computer",
     "trajectory": "computer-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/real/computer"
+    "checkpoint_directory": "real/computer",
+    "legacy_checkpoint_directory": "refined-2026-11-18/real/computer"
   },
   {
     "id": "box",
@@ -85,7 +93,8 @@
     "group": "real",
     "model_directory": "box",
     "trajectory": "box-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/real/box"
+    "checkpoint_directory": "real/box",
+    "legacy_checkpoint_directory": "refined-2026-11-18/real/box"
   },
   {
     "id": "luckycat",
@@ -93,6 +102,7 @@
     "group": "real",
     "model_directory": "luckycat",
     "trajectory": "luckycat-project-page.json",
-    "checkpoint_directory": "refined-2026-11-18/real/luckycat"
+    "checkpoint_directory": "real/luckycat",
+    "legacy_checkpoint_directory": "refined-2026-11-18/real/luckycat"
   }
 ]

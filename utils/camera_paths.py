@@ -15,8 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def model_candidates(root, scene):
     """Find the published checkpoint layout and existing local scene directories."""
     entry = next(item for item in scene_registry() if item['id'] == scene)
-    published = f"{entry['group']}/{scene}"
-    directories = dict.fromkeys([published, entry['checkpoint_directory'], scene, entry['model_directory']])
+    published = entry['checkpoint_directory']
+    legacy = entry.get('legacy_checkpoint_directory', entry['model_directory'])
+    directories = dict.fromkeys([published, legacy, scene, entry['model_directory']])
     return [Path(root) / directory for directory in directories]
 
 

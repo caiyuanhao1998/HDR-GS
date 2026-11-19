@@ -185,7 +185,7 @@ From the repository root, download all 12 scene checkpoints from [Hugging Face M
 conda run --no-capture-output -n hdr_gs_demo hf download CaiYuanhao/HDR-GS --include "synthetic/**" --include "real/**" --local-dir pretrained_weights
 ```
 
-Each scene contains `point_cloud.ply` and `tone_mapper.pth` under `pretrained_weights/synthetic/<scene>/` or `pretrained_weights/real/<scene>/`.
+The download puts each scene's `point_cloud.ply` and `tone_mapper.pth` in `pretrained_weights/synthetic/<scene>/` or `pretrained_weights/real/<scene>/`. The Bathroom and Sofa directories are `pretrained_weights/synthetic/bathroom/` and `pretrained_weights/synthetic/sofa/`.
 
 ### Gradio demo
 

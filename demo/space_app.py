@@ -26,7 +26,7 @@ from app import ROOT, SCENES, make_demo
 from usage import UsageCounter
 
 MODEL_REPOSITORY = 'CaiYuanhao/HDR-GS'
-MODEL_REVISION = '2f75df0f3ff298612ee22ed26eac86395658f8a8'
+MODEL_REVISION = '6e5e69ae1cf06f463e1c88d04925dc89823534d1'
 UPLOAD_BYTES = 384 * 1024 ** 2
 
 

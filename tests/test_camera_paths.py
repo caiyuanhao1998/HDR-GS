@@ -1,12 +1,26 @@
 import copy
 import unittest
+from pathlib import Path
 
 import numpy as np
 
-from utils.camera_paths import build_camera_path, export_keyframes, retime_preset, scene_preset, scene_registry
+from utils.camera_paths import (
+    build_camera_path, export_keyframes, model_candidates, retime_preset, scene_preset, scene_registry,
+)
 
 
 class CameraPathTests(unittest.TestCase):
+    def test_checkpoint_paths_prefer_grouped_downloads(self):
+        root = Path('pretrained_weights')
+        for scene in scene_registry():
+            with self.subTest(scene=scene['id']):
+                self.assertEqual(model_candidates(root, scene['id'])[0], root / scene['group'] / scene['id'])
+
+        self.assertEqual(model_candidates(root, 'bear')[1:], [
+            root / 'refined-2026-11-18' / 'synthetic' / 'bear', root / 'bear',
+        ])
+        self.assertEqual(model_candidates(root, 'sofa')[1:], [root / 'sofa_2', root / 'sofa'])
+
     def test_all_twelve_project_presets_move_forward_and_return(self):
         self.assertEqual(len(scene_registry()), 12)
         for scene in scene_registry():
